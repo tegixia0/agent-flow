@@ -1,0 +1,2 @@
+- 原型使用 `assets/prototype-template.html` 中的 `--vscode-*` CSS 变量，分别截图/检查浅色与深色主题。
+- Tree View 草图用缩进列表表达层级、图标和行内操作；Webview 草图注明消息流（扩展 ⇄ Webview）。

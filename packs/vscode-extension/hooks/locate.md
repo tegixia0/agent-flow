@@ -1,0 +1,2 @@
+- 改动点涉及新命令、视图或配置时，一定要把 `package.json` 的 `contributes` 区间列为单独的改动点。
+- 检查 `extension.ts` 的 `activate` 中注册位置和 `context.subscriptions`，它通常是高风险（🟡/🔴）点。

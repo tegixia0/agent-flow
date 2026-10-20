@@ -1,0 +1,2 @@
+- 定位时区分服务端组件、客户端组件、API 路由 / Server Action、共享工具；跨越服务端/客户端边界的改动标 🟡 以上。
+- Next.js 项目：引用 `node_modules/next/dist/docs/` 中与本版本对应的 API 说明，而不是凭记忆。

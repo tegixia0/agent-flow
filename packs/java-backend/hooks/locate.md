@@ -1,0 +1,2 @@
+- 按 Controller / Service / Repository / Entity / 配置（application.yml）分组列出改动点；数据库结构变更（Flyway/Liquibase 迁移）必须单独成点并标 🔴。
+- TODO(未验证)：多模块 Maven/Gradle 项目中 allowed_files 的模块边界写法。

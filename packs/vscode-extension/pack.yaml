@@ -1,0 +1,31 @@
+name: vscode-extension
+version: 1.0.0
+title: VS Code 扩展
+description: VS Code 扩展开发（contributes、激活事件、Disposable、Webview CSP、@vscode/test-cli、vsce 打包）
+status: stable
+detect:
+  any:
+    - file: package.json
+      jsonPath: engines.vscode
+verify:
+  - name: 编译
+    run: npm run compile
+  - name: 测试
+    run: npm test
+    when: 存在 .vscode-test.* 时会启动 VS Code 实例跑集成测试
+  - name: 打包检查
+    run: npx @vscode/vsce package
+    when: 发布前；只打包，不发布
+rules:
+  - rules/vscode-extension.md
+  - rules/vscode-webview.md
+skills:
+  - skills/vscode-release
+hooks:
+  analyze: hooks/analyze.md
+  locate: hooks/locate.md
+  design: hooks/design.md
+  sketch: hooks/sketch.md
+  implement: hooks/implement.md
+  review: hooks/review.md
+agentsMd: agents-snippet.md

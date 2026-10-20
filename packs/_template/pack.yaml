@@ -1,0 +1,37 @@
+# pack 清单 —— 运行 `agent-flow new-pack <名称>` 会复制本目录并替换 {{PACK_NAME}}。
+name: {{PACK_NAME}}              # 必填：小写字母、数字、连字符；与目录名一致
+version: 0.1.0
+title: {{PACK_NAME}}             # 插入 AGENTS.md 时的小节标题
+description: 一句话说明这个 pack 适用的技术栈
+status: skeleton                 # stable | skeleton（skeleton 不进 build 默认输出）
+
+# 自动检测（--packs auto）：any 中任一命中且 all 中全部命中
+detect:
+  any:
+    - file: package.json         # 文件存在即可；支持 * 通配（仅文件名部分）
+      jsonPath: dependencies.example   # 可选：JSON 路径存在；多个用 | 分隔
+    # - file: Cargo.toml
+    #   contains: "[workspace]"  # 可选：文件包含该字符串
+  # all: []
+
+# 验证命令：渲染到 hooks 中的 {{VERIFY_COMMANDS}}
+verify:
+  - name: 测试
+    run: echo "TODO：填写测试命令"
+    # when: 存在某配置时
+
+# 额外规则（中性格式：name / description / globs / alwaysApply）
+rules:
+  - rules/{{PACK_NAME}}.md
+
+# 额外技能（目录，内含 SKILL.md，符合 agentskills.io 规范）
+skills:
+  - skills/{{PACK_NAME}}-example
+
+# 阶段钩子：追加到对应阶段 SKILL.md 末尾的「技术栈补充」
+# 可用阶段：orchestrator analyze locate design sketch implement review
+hooks:
+  implement: hooks/implement.md
+
+# 插入项目 AGENTS.md 的片段
+agentsMd: agents-snippet.md

@@ -1,0 +1,3 @@
+- 类型：Java / Spring Boot 后端（pack 状态：skeleton）。
+- 验证：`./mvnw -q verify` 或 `./gradlew build`。
+- 分层 Controller → Service → Repository；构造器注入；事务在 Service。

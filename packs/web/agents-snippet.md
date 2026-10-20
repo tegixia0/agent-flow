@@ -1,0 +1,2 @@
+- 类型：Web 前端（Next.js / Vite）。Next.js 项目先读 `node_modules/next/dist/docs/` 中的版本文档。
+- 验证：`npm run lint`、`npx tsc --noEmit`、`npm test`、`npm run build`；有 Playwright 配置时 `npx playwright test`。

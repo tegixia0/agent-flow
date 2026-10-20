@@ -1,0 +1,35 @@
+name: web
+version: 1.0.0
+title: Web 前端（Next.js / Vite）
+description: Next.js 或 Vite 前端项目（路由、服务端/客户端组件、数据获取、可访问性、Playwright 端到端验证）
+status: stable
+detect:
+  any:
+    - file: package.json
+      jsonPath: dependencies.next | devDependencies.next | dependencies.vite | devDependencies.vite
+    - file: next.config.*
+    - file: vite.config.*
+verify:
+  - name: Lint
+    run: npm run lint
+  - name: 类型检查
+    run: npx tsc --noEmit
+  - name: 单元测试
+    run: npm test
+  - name: 构建
+    run: npm run build
+  - name: 端到端
+    run: npx playwright test
+    when: 存在 playwright.config.* 时
+rules:
+  - rules/web-frontend.md
+skills:
+  - skills/web-verify-ui
+hooks:
+  analyze: hooks/analyze.md
+  locate: hooks/locate.md
+  design: hooks/design.md
+  sketch: hooks/sketch.md
+  implement: hooks/implement.md
+  review: hooks/review.md
+agentsMd: agents-snippet.md

@@ -1,0 +1,28 @@
+# 状态：skeleton —— 结构完整、可安装，但约定内容尚未在真实 Spring Boot 项目上跑通。
+# 所有标注 TODO(未验证) 的条目都需要维护者在真实项目中确认后再改为 stable。
+name: java-backend
+version: 0.1.0
+title: Java 后端（Spring Boot）
+description: Java / Spring Boot 后端（分层、事务、JPA N+1、Maven/Gradle 验证）—— 骨架，待验证
+status: skeleton
+detect:
+  any:
+    - file: pom.xml
+    - file: build.gradle
+    - file: build.gradle.kts
+verify:
+  - name: Maven 验证
+    run: ./mvnw -q verify
+    when: 存在 pom.xml 时（没有 mvnw 用 mvn）
+  - name: Gradle 构建
+    run: ./gradlew build
+    when: 存在 build.gradle(.kts) 时（没有 gradlew 用 gradle）
+rules:
+  - rules/java-spring.md
+hooks:
+  analyze: hooks/analyze.md
+  locate: hooks/locate.md
+  design: hooks/design.md
+  implement: hooks/implement.md
+  review: hooks/review.md
+agentsMd: agents-snippet.md

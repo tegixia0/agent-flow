@@ -1,0 +1,3 @@
+- 类型：VS Code 扩展；入口 `src/extension.ts`，贡献点在 `package.json` 的 `contributes`。
+- 验证：`npm run compile`、`npm test`（@vscode/test-cli）、`npx @vscode/vsce package`。
+- Webview 一律 CSP + nonce；不使用已弃用的 `@vscode/webview-ui-toolkit`。
