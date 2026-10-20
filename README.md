@@ -101,6 +101,7 @@ agent-flow/
 - 新技术栈 → [docs/how-to-add-a-pack.md](docs/how-to-add-a-pack.md)
 - 新工具 → [docs/adapters.md](docs/adapters.md)
 - 架构 → [docs/architecture.md](docs/architecture.md)；贡献 → [CONTRIBUTING.md](CONTRIBUTING.md)
+- 项目介绍页（中文，单文件 HTML）→ [docs/intro.html](docs/intro.html)
 
 ## 许可
 

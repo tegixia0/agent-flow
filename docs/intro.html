@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>agent-workflow-kit · 我的 AI 探索实践</title>
+<title>agent-flow v2.2.0 · 我的 AI 探索实践</title>
+<meta name="author" content="tegixia">
 <style>
 :root{
   --bg:#f7f8fa;--bg2:#ffffff;--fg:#1d2330;--muted:#5d6676;--line:#e3e6ec;
@@ -168,6 +169,37 @@ tr.new td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .refs li{font-size:14.5px;margin:3px 0;word-break:break-all}
 footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
 .honest{font-size:13.5px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:10px 14px;margin-top:14px}
+
+/* v2 additions */
+.warnbox{border:1.5px solid color-mix(in srgb,var(--warn) 55%,transparent);background:color-mix(in srgb,var(--warn) 8%,var(--bg2));border-radius:var(--radius);padding:14px 18px;margin:16px 0}
+.warnbox b.t{color:var(--warn)}
+.warnbox p{margin:6px 0 0;font-size:15px;overflow-wrap:anywhere}
+.card p,.honest,.quote{overflow-wrap:anywhere}
+.term{font-family:var(--mono);font-size:13px;line-height:1.65;background:#11151c;color:#d7dce5;border:1px solid var(--line);border-radius:10px;padding:12px 16px;overflow:auto;white-space:pre;margin:10px 0}
+.term .p{color:#7fb0ff}.term .e{color:#ff8a8a}.term .h{color:#f0c674}.term .c{color:#8b95a7}
+.badge{font-size:12px;padding:1px 8px;border-radius:999px;font-weight:600;white-space:nowrap;display:inline-block}
+.badge.st{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.badge.sk{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.badge.as{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad)}
+.badge.tp{background:var(--code);color:var(--muted);border:1px solid var(--line)}
+.arch-fb{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:stretch;font-size:13px}
+@media (max-width:760px){.arch-fb{grid-template-columns:1fr}}
+.arch-fb .col{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.arch-fb .col b{display:block;font-size:12px;color:var(--accent);font-family:var(--mono);margin-bottom:6px}
+.arch-fb .col div{padding:4px 8px;border-radius:7px;background:var(--code);border:1px solid var(--line);margin:4px 0;line-height:1.4}
+.arch-fb .col div.dash{border-style:dashed}
+.timeline{list-style:none;margin:0;padding:0 0 0 22px;border-left:2px solid var(--line)}
+.timeline>li{position:relative;padding:0 0 18px 14px}
+.timeline>li::before{content:"";position:absolute;left:-30px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--bg2);border:3px solid var(--accent)}
+.timeline>li.old::before{border-color:var(--pend)}
+.timeline .ver{font-family:var(--mono);font-weight:700;font-size:15px}
+.timeline .date{font-size:13px;color:var(--muted);margin-left:8px}
+.timeline p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.timeline ul{margin:4px 0 0;padding-left:18px;color:var(--muted);font-size:15px}
+td.wrap,td.wrap code{white-space:normal}
+.gh{display:inline-flex;align-items:center;gap:6px}
+@media (max-width:600px){.mermaid-box svg{min-width:620px;max-width:none}}
+@media (max-width:600px){section{padding-top:44px}.tbl table{font-size:13.5px}th,td{padding:8px 9px}}
 </style>
 </head>
 <body>
@@ -175,20 +207,24 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
 <header class="hero">
   <div class="wrap">
     <span class="eyebrow">我的 AI 探索实践 · 01</span>
-    <h1>让 AI 先“说清楚要改哪”，<br>再动手：<span class="grad">agent-workflow-kit</span></h1>
-    <p class="lead">一套我自己搭的、分阶段、人在回路的 AI 开发工作流模板，用 Skill 写成，在 Trae 和 Cursor 里都能跑。这一页记录我为什么做它、它长什么样、用一个小例子跑下来的真实过程，还有我自己的一些体会。</p>
+    <h1>让 AI 先“说清楚要改哪”，<br>再动手：<span class="grad">agent-flow</span></h1>
+    <p class="lead">我自己搭的一套分阶段、人在回路的 AI 开发流程。流程只写一份、和工具无关，再用一个零依赖的 CLI 装进 Trae、Cursor、Claude Code、CodeAgent，或者任何会读 AGENTS.md 的工具。它的前身是只支持 Trae 和 Cursor、靠手工复制模板的 agent-workflow-kit v1.1。这一页讲我为什么做它、现在的结构、一个小例子的真实运行过程，还有我的一些体会。</p>
     <div class="meta">
       <span>✍️ 作者：tegixia</span>
       <span>📅 2026-10</span>
-      <span>🧰 Trae + Cursor · Agent Skills · v1.1</span>
+      <span>🏷️ v2.2.0 · MIT</span>
+      <span>🧰 Trae · Cursor · Claude Code · CodeAgent · AGENTS.md</span>
+      <span>⚙️ Node.js ≥ 18，零依赖，支持 Windows</span>
+      <span class="gh">🔗 <a href="https://github.com/tegixia0/agent-flow" target="_blank" rel="noopener">github.com/tegixia0/agent-flow</a></span>
     </div>
   </div>
 </header>
 
 <nav class="toc" aria-label="目录">
   <div class="wrap">
-    <a href="#why">为什么做</a><a href="#what">它是什么</a><a href="#flow">流程图</a><a href="#design">核心设计</a>
-    <a href="#demo">实例演示</a><a href="#usage">如何使用</a><a href="#token">Token 成本</a><a href="#reflect">收获与下一步</a><a href="#refs">参考链接</a>
+    <a href="#why">为什么做</a><a href="#what">它是什么</a><a href="#flow">流程图</a><a href="#arch">项目架构</a><a href="#design">核心设计</a>
+    <a href="#tools">支持的工具</a><a href="#packs">技术栈 pack</a><a href="#cli">CLI</a><a href="#safety">安全措施</a><a href="#windows">Windows</a>
+    <a href="#demo">实例演示</a><a href="#usage">怎么触发</a><a href="#token">Token 成本</a><a href="#history">版本历史</a><a href="#reflect">收获与下一步</a><a href="#refs">参考链接</a>
     <button id="themeBtn" type="button" aria-label="切换明暗主题">🌓 主题</button>
   </div>
 </nav>
@@ -205,27 +241,40 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
     <div class="card"><h4><span class="ico">🔁</span>返工</h4><p>方向错了只能在聊天里来回纠正，改完再改。结论散在对话里，回头也找不到。</p></div>
     <div class="card"><h4><span class="ico">🪙</span>token 浪费</h4><p>一条长对话从头聊到尾，上下文越来越大，每一轮都在为前面的聊天记录付费。</p></div>
   </div>
-  <div class="quote">之前我整理过一份《AI 辅助编程提效指南》，讲规则、Skills、MCP、省 token 的技巧，偏“知识”。这次想往前走一步：<b>把这些知识落到一个能真正跑起来的工作流里</b>，在实际项目上试一下，看看哪些有用、哪些只是看起来有用。</div>
+  <div class="quote">之前我整理过一份《AI 辅助编程提效指南》，讲规则、Skills、MCP 和省 token 的技巧，内容偏“知识”。这次想往前走一步：<b>把这些知识落到一个真正能跑的工作流里</b>，放到实际项目上试，看看哪些有用、哪些只是看起来有用。v1 先在 Trae 和 Cursor 上跑通；v2 想解决另一件事：<b>换工具、换技术栈时，流程本身不用重写</b>。</div>
 </section>
 
 <!-- 2 -->
 <section id="what">
   <h2><span class="num">02</span>它是什么</h2>
   <p class="sub">一句话：</p>
-  <div class="oneliner">分阶段、人在回路的 AI 开发工作流模板
-    <small>需求 → 分析 → 设计 → 草图 → 计划与实现 → 评审。每个阶段产出一个交接文件，你回复「通过」它才往下走。</small>
+  <div class="oneliner">分阶段、人在回路的 AI 开发流程，一份源码装进多种 AI 工具
+    <small>需求 → 分析 →（影响定位）→ 设计 → 草图 → 计划与实现 → 评审。每个阶段产出一个交接文件，你回复「通过」它才往下走。</small>
   </div>
   <div class="tags">
     <span class="tag">Spec-driven development：先写规格，再写代码</span>
     <span class="tag">Human-in-the-loop：每个阶段之间都要人确认</span>
     <span class="tag">Agent Skills（SKILL.md）</span>
-    <span class="tag">Trae / Cursor 通用</span>
+    <span class="tag">core × packs × adapters</span>
     <span class="tag">新建 + 存量两种模式</span>
+    <span class="tag">零依赖 CLI</span>
   </div>
   <div class="grid g3" style="margin-top:20px">
     <div class="card"><h4><span class="ico">🧩</span>模块化</h4><p>每个阶段是一个独立 Skill，可以只调用其中一个，比如只用 <code>flow-review</code> 做 CR。</p></div>
     <div class="card"><h4><span class="ico">📄</span>不依赖聊天记录</h4><p>下一阶段只读 <code>docs/flow/0N-*.md</code> 交接文件，所以每个阶段都可以在新对话里继续。</p></div>
-    <div class="card"><h4><span class="ico">🔍</span>可审计</h4><p>每个阶段的产物都进 git，可以 diff，可以回滚，事后也能看清每个决定是怎么做出来的。</p></div>
+    <div class="card"><h4><span class="ico">🔍</span>可审计</h4><p>每个阶段的产物都进 git，可以 diff、可以回滚，事后也能看清每个决定是怎么做出来的。</p></div>
+  </div>
+  <h3>从 agent-workflow-kit 到 agent-flow</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>agent-workflow-kit v1.1</th><th>agent-flow v2.x</th></tr></thead>
+      <tbody>
+        <tr><td>支持的工具</td><td class="wrap">Trae、Cursor</td><td class="wrap">Trae、Cursor、Claude Code、generic（AGENTS.md），2.1.0 起加入 CodeAgent（格式为假定）</td></tr>
+        <tr><td>安装方式</td><td class="wrap"><code>install.sh</code> 复制模板，<code>sync-skills.sh</code> 同步两份目录</td><td class="wrap">零依赖 CLI：<code>init</code> / <code>upgrade</code> / <code>uninstall</code> …，由 adapter 按工具渲染</td></tr>
+        <tr><td>技术栈内容</td><td class="wrap">VS Code / Web 的要点写在流程技能里</td><td class="wrap">移到 <code>packs/</code>，按项目文件自动检测启用</td></tr>
+        <tr><td>升级</td><td class="wrap"><code>--upgrade</code> 覆盖 flow-* 文件</td><td class="wrap">按 <code>lock.json</code> 里的文件指纹，只覆盖你没改过的文件</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
@@ -273,18 +322,82 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
       <span><i style="border-style:dashed"></i>可选阶段：用户要求时，或 01b 有 🔴 点、需要新建模块时插入</span>
     </div>
   </div>
-  <p class="honest">模式判断：说「改造 / 存量」走存量模式，说「新建 / 从零」走新建模式；都没说时，如果项目里已有业务源码且需求涉及已有功能，默认按存量处理，并在确认点告诉你可以「切换为新建模式」。</p>
+  <p class="honest">模式判断：说「改造 / 存量」走存量模式，说「新建 / 从零」走新建模式；都没说时，如果项目里已有业务源码且需求涉及已有功能，默认按存量处理，并在确认点告诉你可以「切换为新建模式」。安装时也可以用 <code>--mode greenfield|brownfield</code> 指定默认模式。</p>
 </section>
 
 <!-- 4 -->
+<section id="arch">
+  <h2><span class="num">04</span>项目架构：core × packs → adapters</h2>
+  <p class="sub">一句话：<code>core</code>（流程）× <code>packs</code>（技术栈）→ <code>lib/render</code>（解析成中性模型）→ <code>adapters</code>（按工具落盘）→ 你的项目。CLI 把这几步串起来。</p>
+
+  <div class="mermaid-box">
+    <p class="note">源码与工具无关；只有 adapter 知道每个工具的目录和 frontmatter。虚线 = 格式为假定、未核对。</p>
+    <pre class="mermaid" style="position:absolute;left:-9999px;top:0;width:1000px;visibility:hidden">flowchart TB
+  classDef assumed stroke-dasharray:4 3
+  subgraph SRC["源码（与工具无关）"]
+    core["core/<br/>7 skills · 3 rules · 6 agents · project"]
+    packs["packs/*/pack.yaml<br/>rules · skills · hooks · verify · agentsMd"]
+  end
+  files["项目文件<br/>package.json · pom.xml …"]
+  cli["bin/agent-flow（CLI）<br/>init · upgrade · uninstall · build"]
+  detect["lib/model.mjs<br/>detectPacks()"]
+  resolve["lib/render.mjs<br/>resolve()：填 token、按工具裁剪、追加 hook"]
+  subgraph AD["adapters/"]
+    trae["trae"]
+    cursor["cursor"]
+    claude["claude-code"]
+    cac["codeagent（假定）"]:::assumed
+    generic["generic"]
+  end
+  proj["目标项目<br/>.trae/ .cursor/ .claude/ .cac/ AGENTS.md docs/flow/"]
+  lock[".agent-flow/lock.json<br/>版本 · 工具 · packs · 模式 · 文件指纹 · dirs"]
+  files --> detect --> packs
+  cli --> resolve
+  core --> resolve
+  packs --> resolve
+  resolve --> trae & cursor & claude & cac & generic --> proj
+  proj --- lock</pre>
+    <div class="mermaid-fallback arch-fb">
+      <div class="col"><b>① 源码</b><div>core/ · 7 个技能、3 条规则、6 个阶段代理、AGENTS.md 模板</div><div>packs/*/pack.yaml · 规则、技能、hook、验证命令</div><div>detectPacks() 按 package.json / pom.xml 自动选 pack</div></div>
+      <div class="col"><b>② 解析</b><div>lib/render.mjs · resolve()</div><div>填 token、按工具保留条件块、把 pack hook 追加到阶段技能末尾</div></div>
+      <div class="col"><b>③ adapters/</b><div>trae</div><div>cursor</div><div>claude-code</div><div class="dash">codeagent（假定）</div><div>generic</div></div>
+      <div class="col"><b>④ 目标项目</b><div>.trae/ .cursor/ .claude/ .cac/</div><div>AGENTS.md · docs/flow/README.md</div><div>.agent-flow/lock.json</div></div>
+    </div>
+  </div>
+
+  <div class="grid g4" style="margin-top:16px">
+    <div class="card"><h4><span class="ico">🧠</span>core/</h4><p>流程本身：7 个 <code>flow-*</code> 技能、交接格式与范围护栏规则、6 个阶段代理、项目 <code>AGENTS.md</code> 模板。<code>core/manifest.yaml</code> 描述每个阶段对应的技能、代理、交接文件和适用模式。不含任何工具路径或技术栈细节。</p></div>
+    <div class="card"><h4><span class="ico">📦</span>packs/</h4><p>技术栈扩展包：额外规则、技能、各阶段的补充（hook）、验证命令、AGENTS.md 片段，以及何时自动启用（detect）。</p></div>
+    <div class="card"><h4><span class="ico">🔌</span>adapters/</h4><p>每个工具一个 <code>adapter.mjs</code>：提供 token 文案，<code>render(model)</code> 返回要写的文件，决定文件放哪、frontmatter 怎么写。</p></div>
+    <div class="card"><h4><span class="ico">⌨️</span>bin/agent-flow</h4><p>零依赖 CLI（Node ≥ 18）：安装、自动检测 pack、按指纹安全升级、卸载、生成 pack、构建 <code>dist/</code>。Windows 用 <code>bin\agent-flow.cmd</code>。</p></div>
+  </div>
+
+  <h3>几个关键概念</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>概念</th><th>位置</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>技能</td><td><code>core/skills/&lt;name&gt;/SKILL.md</code></td><td class="wrap">遵循 agentskills.io：<code>name</code> 与目录同名，<code>description</code> ≤ 1024 字符</td></tr>
+        <tr><td>中性规则</td><td><code>core/rules/*.md</code></td><td class="wrap"><code>name</code>、<code>description</code>、<code>globs</code>（字符串或列表）、<code>alwaysApply</code>；adapter 转成 <code>.mdc</code>、Claude 的 <code>paths</code> 等</td></tr>
+        <tr><td>中性代理</td><td><code>core/agents/*.md</code></td><td class="wrap"><code>name</code>、<code>description</code>、<code>skill</code>、<code>tools</code>、<code>readonly</code></td></tr>
+        <tr><td>token</td><td>正文中的 <code>{{X}}</code></td><td class="wrap">由 adapter 提供，如 <code>DELEGATE_HINT</code>、<code>PREVIEW_HINT</code>；pack hook 里的 <code>{{VERIFY_COMMANDS}}</code> 展开成验证命令</td></tr>
+        <tr><td>条件块</td><td><code>&lt;!--@only cursor--&gt;…&lt;!--@end--&gt;</code></td><td class="wrap">只在某些工具里保留的文字（还有 <code>@except</code>）</td></tr>
+        <tr><td>hook</td><td><code>packs/x/hooks/&lt;stage&gt;.md</code></td><td class="wrap">追加到该阶段 SKILL.md 末尾的「技术栈补充（pack: x）」</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="honest">兼容性：<code>--tool trae,cursor --packs none</code> 的输出和 v1.1 套件逐字节一致，只有两处例外：<code>flow-design</code> 第 6–7 步和 <code>flow-implement</code> 的两条技术栈约定移进了 pack（启用 <code>vscode-extension,web</code> 时，原文出现在「技术栈补充」里）。这一点由 <code>test/cli.test.mjs</code> 对照 <code>test/fixtures/kit-v1.1</code> 自动校验。</p>
+</section>
+
+<!-- 5 -->
 <section id="design">
-  <h2><span class="num">04</span>核心设计</h2>
-  <p class="sub">整个套件只有几个想法，但每个都对应一个我实际踩过的坑。</p>
+  <h2><span class="num">05</span>核心设计</h2>
+  <p class="sub">流程本身只有几个想法，但每个都对应一个我实际踩过的坑。</p>
 
   <div class="grid g2">
     <div class="card">
       <h4><span class="ico">📑</span>交接文件 + status</h4>
-      <p>每个阶段写一个 <code>docs/flow/0N-*.md</code>，开头是 YAML frontmatter。<code>status</code> 取 <code>draft</code> / <code>approved</code> / <code>done</code> / <code>changes-requested</code>。编排器读取这些文件，找到第一个还没 approved 的阶段继续执行；上一阶段还是 draft 时不会开始下一阶段。</p>
+      <p>每个阶段写一个 <code>docs/flow/0N-*.md</code>，开头是 YAML frontmatter。<code>status</code> 取 <code>draft</code> / <code>approved</code> / <code>done</code> / <code>changes-requested</code>。编排器读取这些文件，找到第一个还没 approved 的阶段继续；上一阶段还是 draft 时不会开始下一阶段。CLI 从不生成或覆盖这些流程产物，只写 <code>docs/flow/README.md</code>。</p>
 <div class="fm" style="margin-top:12px"><span class="k">stage</span>: 01b-impact
 <span class="k">status</span>: approved   <span class="c"># pending 为空 且 approved 非空</span>
 <span class="k">mode</span>: brownfield
@@ -319,20 +432,179 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
         <span class="tag">flow-analyst · 分析</span><span class="tag">flow-locator · 影响定位</span><span class="tag">flow-designer · 设计</span>
         <span class="tag">flow-sketcher · 草图</span><span class="tag">flow-implementer · 实现</span><span class="tag">flow-reviewer · 评审（readonly）</span>
       </div>
-      <p style="margin-top:10px">Cursor 放在 <code>.cursor/agents/</code>，reviewer 设成 <code>readonly: true</code>；Trae 放在 <code>.trae/agents/</code>，由内置 Agent 调用。</p>
+      <p style="margin-top:10px">中性代理定义只写一份，由 adapter 渲染成各工具的格式：Cursor 的 reviewer 是 <code>readonly: true</code>，Claude Code / CodeAgent 用 <code>skills:</code> 预加载对应技能，Trae 由内置 Agent 调用。</p>
     </div>
   </div>
 
   <div class="card" style="margin-top:16px">
-    <h4><span class="ico">🔀</span>基于 Skill，所以能跨工具</h4>
-    <p>7 个 <code>flow-*</code> 技能都是标准的 <code>SKILL.md</code>（遵循 agentskills.io 格式），同一份内容放在 <code>.trae/skills/</code> 和 <code>.cursor/skills/</code>，用 <code>sync-skills.sh</code> 保持同步。规则文件两边 frontmatter 字段基本一致（<code>description</code> / <code>globs</code> / <code>alwaysApply</code>），<code>AGENTS.md</code> 作为两边共用的唯一事实来源。Skill 按需加载，规则全程占上下文，所以详细步骤都写进 Skill，规则只写入口和护栏。</p>
+    <h4><span class="ico">🔀</span>一份源码，按工具渲染</h4>
+    <p>v1 里同一份技能要放在 <code>.trae/skills/</code> 和 <code>.cursor/skills/</code>，靠 <code>sync-skills.sh</code> 同步。v2 改成只维护 <code>core/</code> 和 <code>packs/</code> 里的中性格式，安装时由 adapter 渲染：规则在 Cursor 里是 <code>.mdc</code>，在 Claude Code 里只用 <code>paths</code>；只有某个工具需要的文字用 <code>&lt;!--@only cursor--&gt;</code> 这样的条件块包起来（比如 Cursor 的只读 reviewer 不能写文件，就改成“把 05-review.md 的内容返回给主代理”）。Skill 按需加载、规则全程占上下文，所以详细步骤都写进 Skill，规则只写入口和护栏。</p>
   </div>
 </section>
 
-<!-- 5 -->
+<!-- 6 -->
+<section id="tools">
+  <h2><span class="num">06</span>支持的工具（adapters）</h2>
+  <p class="sub">每个工具一个 adapter。安装时用 <code>--tool</code> 选择，可以逗号组合。<code>--tool all</code> = trae + cursor + claude；generic 和 codeagent 都要单独写。</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>Trae</th><th>Cursor</th><th>Claude Code</th><th>CodeAgent（<code>cac</code>，假定）</th><th>generic</th></tr></thead>
+      <tbody>
+        <tr><td><code>--tool</code></td><td><code>trae</code></td><td><code>cursor</code></td><td><code>claude</code>（别名 <code>claude-code</code>）</td><td><code>codeagent</code> / <code>cac</code></td><td><code>generic</code></td></tr>
+        <tr><td>技能</td><td><code>.trae/skills/flow-*/</code></td><td><code>.cursor/skills/flow-*/</code></td><td><code>.claude/skills/flow-*/</code></td><td><code>.cac/skills/flow-*/</code></td><td><code>docs/agent-flow/skills/</code></td></tr>
+        <tr><td>规则</td><td><code>.trae/rules/*.md</code></td><td><code>.cursor/rules/*.mdc</code></td><td><code>.claude/rules/*.md</code>（<code>paths</code>）</td><td><code>.cac/rules/*.md</code>（<code>paths</code>）</td><td>内联到 <code>AGENTS.md</code></td></tr>
+        <tr><td>子代理</td><td><code>.trae/agents/</code></td><td><code>.cursor/agents/</code></td><td><code>.claude/agents/</code>（<code>skills</code> 预加载）</td><td><code>.cac/agents/</code></td><td><code>docs/agent-flow/agents/</code>（参考）</td></tr>
+        <tr><td>入口说明</td><td><code>AGENTS.md</code>（需打开设置开关）</td><td><code>AGENTS.md</code></td><td><code>CLAUDE.md</code> → <code>@AGENTS.md</code></td><td><code>.cac/AGENTS.md</code></td><td><code>AGENTS.md</code></td></tr>
+        <tr><td>在 <code>all</code> 中</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h4><span class="ico">🟦</span>Trae</h4><p>规则用 <code>description</code> / <code>globs</code> / <code>alwaysApply</code>，子代理的 <code>tools</code> 含 <code>Skill</code>。依据 docs.trae.ai 的 Rules / Skills / Subagents 页面（2026-10 核对）。需要在设置里打开 AGENTS.md 和 Subagents 开关，且只有内置 Agent 能调用子代理。</p></div>
+    <div class="card"><h4><span class="ico">⬛</span>Cursor</h4><p>规则是 <code>.mdc</code>；子代理带 <code>model: inherit</code> 和 <code>readonly</code>，技能用 <code>/name</code> 调用。注意 Cursor 也会读 <code>.claude/skills/</code>，同时装 cursor 和 claude 时可能看到两份同名技能，内容只在路径提示上不同。</p></div>
+    <div class="card"><h4><span class="ico">🟧</span>Claude Code</h4><p>依据 code.claude.com 的 memory、skills、sub-agents 文档（2026-10 核对）。Claude Code 只在没有 <code>CLAUDE.md</code> 时才读 AGENTS.md，所以生成的 <code>CLAUDE.md</code> 第一行是 <code>@AGENTS.md</code>；已有 <code>CLAUDE.md</code> 时不覆盖，请自己加这一行。规则只用 <code>paths</code>，没有 globs 的规则不写 frontmatter、始终加载。</p></div>
+    <div class="card"><h4><span class="ico">📄</span>generic</h4><p>给只认 AGENTS.md 的工具（Codex、Copilot coding agent、Jules、Zed、Windsurf 等）：规则内联到 <code>AGENTS.md</code> 末尾的「流程规则（agent-flow）」一节，技能和代理放在 <code>docs/agent-flow/</code> 下按路径引用。</p></div>
+  </div>
+
+  <div class="warnbox">
+    <b class="t">⚠️ CodeAgent（<code>--tool codeagent</code>，别名 <code>cac</code>）：格式为假定，未经核对</b>
+    <p>CodeAgent 没有公开文档。<code>.cac/</code> 的目录布局来自我拿到的说明，frontmatter 全部照搬 Claude Code 的格式，属于 <b>assumed, unverified</b>。实现上复用了 claude-code adapter 的 <code>renderClaudeLayout(model, '.cac')</code>，只替换目录、token 和入口说明。</p>
+    <p>因为没核对过，它<b>不在 <code>--tool all</code> 里</b>，需要时显式写 <code>--tool all,cac</code>。只装 codeagent 时不写根目录 <code>AGENTS.md</code>（<code>.cac/AGENTS.md</code> 已是完整说明；CodeAgent 是否同时读根目录未知）；和其他工具同装时两份都写，由 lock 分别跟踪。</p>
+    <p>agent-flow <b>绝不</b>创建或修改 <code>.cac/settings.json</code>、<code>.cac/AGENTS.local.md</code>、<code>output-styles/</code>、<code>hooks/</code>、<code>agent-memory/</code>、<code>agent-memory-local/</code>（adapter 里有断言，测试也会校验）。拿到官方文档后需要逐项核对。</p>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="packs">
+  <h2><span class="num">07</span>技术栈 pack</h2>
+  <p class="sub">pack 是某个技术栈的“补充说明”。<code>--packs auto</code>（默认）按项目文件自动检测；也可以 <code>--packs none</code> 或 <code>--packs a,b</code> 手动指定。</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>pack</th><th>状态</th><th>自动检测</th><th>验证命令</th><th>附带</th></tr></thead>
+      <tbody>
+        <tr><td><b>vscode-extension</b> <small>1.0.0</small></td><td><span class="badge st">stable</span></td><td class="wrap"><code>package.json</code> 有 <code>engines.vscode</code></td><td class="wrap"><code>npm run compile</code> · <code>npm test</code> · <code>npx @vscode/vsce package</code>（只打包不发布）</td><td class="wrap">规则 vscode-extension、vscode-webview；技能 vscode-release；6 个阶段 hook</td></tr>
+        <tr><td><b>web</b> <small>1.0.0</small></td><td><span class="badge st">stable</span></td><td class="wrap">依赖里有 <code>next</code> / <code>vite</code>，或存在 <code>next.config.*</code> / <code>vite.config.*</code></td><td class="wrap"><code>npm run lint</code> · <code>npx tsc --noEmit</code> · <code>npm test</code> · <code>npm run build</code> · <code>npx playwright test</code></td><td class="wrap">规则 web-frontend；技能 web-verify-ui；6 个阶段 hook</td></tr>
+        <tr><td><b>java-backend</b> <small>0.1.0</small></td><td><span class="badge sk">skeleton</span></td><td class="wrap"><code>pom.xml</code>、<code>build.gradle</code>、<code>build.gradle.kts</code> 任一</td><td class="wrap"><code>./mvnw -q verify</code> · <code>./gradlew build</code></td><td class="wrap">规则 java-spring；analyze / locate / design / implement / review hook</td></tr>
+        <tr><td><b>_template</b></td><td><span class="badge tp">模板</span></td><td class="wrap">—</td><td class="wrap">—</td><td class="wrap"><code>new-pack</code> 复制它并替换 <code>{{PACK_NAME}}</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="honest">java-backend 是骨架：结构完整、可以安装，但约定内容还没在真实 Spring Boot 项目上跑通，不确定的条目都标了 <code>TODO(未验证)</code>，转 stable 前要逐条确认。<code>build</code> 默认只包含 stable 的 pack。</p>
+
+  <h3>加一个新 pack</h3>
+  <div class="grid g4">
+    <div class="card"><h4><span class="ico">1</span>生成骨架</h4><p><code>new-pack rust-cli</code>，放仓库外用 <code>--packs-dir</code>。</p></div>
+    <div class="card"><h4><span class="ico">2</span>写 pack.yaml</h4><p><code>detect</code>、<code>verify</code>、<code>rules</code>、<code>skills</code>、<code>hooks</code>、<code>agentsMd</code>；未验证的写 <code>TODO(未验证)</code>，保持 <code>status: skeleton</code>。</p></div>
+    <div class="card"><h4><span class="ico">3</span>验证</h4><p><code>list-packs --project 目录</code> 看 ✔ 是否命中，<code>build --packs rust-cli</code> 看渲染结果，<code>npm test</code> 自动检查 frontmatter。</p></div>
+    <div class="card"><h4><span class="ico">4</span>提交</h4><p>pack 改动单独提交，例如 <code>feat(pack): add rust-cli (skeleton)</code>，并更新 CHANGELOG。</p></div>
+  </div>
+  <p class="honest">第三方 pack：<code>--packs-dir ./my-packs</code>（可重复）或环境变量 <code>AGENT_FLOW_PACKS_PATH</code>。</p>
+</section>
+
+<!-- 8 -->
+<section id="cli">
+  <h2><span class="num">08</span>CLI</h2>
+  <p class="sub">零依赖，只需要 Node.js ≥ 18。macOS / Linux 用 <code>bin/agent-flow</code>，Windows 用 <code>bin\agent-flow.cmd</code>（cmd 和 PowerShell 都能调用），也可以直接 <code>node bin/agent-flow.mjs</code>。</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>命令</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>init &lt;目录&gt; --tool …</code></td><td class="wrap">安装。<b><code>--tool</code> 必填</b>（不会默认装全部）。可选 <code>--packs auto|none|a,b</code>、<code>--mode auto|greenfield|brownfield</code>。先打印计划再问 <code>y/N</code>；<code>--dry-run</code> 只看计划，<code>--yes</code> / <code>-y</code> 跳过确认。记录 <code>.agent-flow/lock.json</code></td></tr>
+        <tr><td><code>upgrade [目录]</code></td><td class="wrap">按 lock 里记录的工具、packs、模式重新渲染（不接受 <code>--tool</code>）。按文件指纹判断：<b>只覆盖你没改过的文件</b>，改过的写成 <code>&lt;文件&gt;.agent-flow-new</code>；<code>--force</code> 才强制覆盖</td></tr>
+        <tr><td><code>uninstall &lt;目录&gt; [--tool x,y]</code></td><td class="wrap">只删除 lock 里记录、且<b>未被修改</b>的文件，以及 agent-flow 新建的空目录；改过的文件列出并保留。按工具卸载时保留其他工具还需要的共享文件。不加 <code>--tool</code> 卸载全部</td></tr>
+        <tr><td><code>list-packs [--project 目录]</code></td><td class="wrap">列出 pack；带 <code>--project</code> 时用 ✔ 标出检测命中的 pack</td></tr>
+        <tr><td><code>new-pack &lt;名称&gt;</code></td><td class="wrap">从 <code>packs/_template</code> 生成新 pack（<code>--packs-dir</code> 指定位置）</td></tr>
+        <tr><td><code>build [--packs stable|all|none|a,b]</code></td><td class="wrap">为每个工具渲染 <code>dist/&lt;tool&gt;/</code>，方便查看或手动复制</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Windows / PowerShell</h3>
+<pre><code>git clone https://github.com/tegixia0/agent-flow.git C:\tools\agent-flow
+cd C:\path\to\your-project
+
+# 先看计划，不写文件
+C:\tools\agent-flow\bin\agent-flow.cmd init . --tool trae,cursor --mode brownfield --dry-run
+# 确认后安装（终端里会问 y/N）
+C:\tools\agent-flow\bin\agent-flow.cmd init . --tool trae,cursor --mode brownfield
+# 再加装 Claude Code；lock 里会保留之前装的工具
+C:\tools\agent-flow\bin\agent-flow.cmd init . --tool claude
+# CodeAgent 要显式指定（不在 all 里）
+C:\tools\agent-flow\bin\agent-flow.cmd init . --tool all,cac --dry-run
+
+C:\tools\agent-flow\bin\agent-flow.cmd list-packs --project .
+C:\tools\agent-flow\bin\agent-flow.cmd upgrade .
+C:\tools\agent-flow\bin\agent-flow.cmd uninstall . --tool cursor --dry-run
+C:\tools\agent-flow\bin\agent-flow.cmd new-pack rust-cli
+C:\tools\agent-flow\bin\agent-flow.cmd build --packs stable
+
+# 脚本 / CI 里（非交互）必须加 --yes
+C:\tools\agent-flow\bin\agent-flow.cmd init . --tool generic --yes</code></pre>
+
+  <h3>macOS / Linux</h3>
+<pre><code>git clone https://github.com/tegixia0/agent-flow.git ~/tools/agent-flow
+cd your-project
+~/tools/agent-flow/bin/agent-flow init . --tool trae,cursor --mode brownfield
+~/tools/agent-flow/bin/agent-flow upgrade .</code></pre>
+  <p class="honest">想直接输入 <code>agent-flow</code>：在 agent-flow 目录运行一次 <code>npm link</code>。装好后填写项目根目录 <code>AGENTS.md</code> 的「项目信息」一节（技术栈、命令、约定），这是性价比最高的上下文。存量模式建议在 git 仓库里用、开始前先提交一次：01b 记录 baseline，04 和 05 用 <code>git diff</code> 做范围核对。</p>
+</section>
+
+<!-- 9 -->
+<section id="safety">
+  <h2><span class="num">09</span>安全措施</h2>
+  <p class="sub">这个工具会往别人的项目里写文件，所以我给它定的原则是：宁可报错、宁可多问一句，也不要悄悄写错或覆盖。</p>
+  <div class="grid g2">
+    <div class="card"><h4><span class="ico">🚫</span>从不覆盖你的文件</h4><p><code>init</code> 只新建文件；已存在且不是 agent-flow 生成的文件一律跳过。已有 <code>AGENTS.md</code> → 写 <code>AGENTS.flow.md</code>，需要你手动合并；已有 <code>CLAUDE.md</code> → 保留；已有非 agent-flow 生成的 <code>.cac/AGENTS.md</code> → 写 <code>.cac/AGENTS.flow.md</code>。</p></div>
+    <div class="card"><h4><span class="ico">🔏</span>按指纹升级</h4><p>每个写入的文件在 <code>.agent-flow/lock.json</code> 里记一个指纹（sha256 前 16 位，按 LF 计算）。<code>upgrade</code> 时指纹一致 → 覆盖；不一致（你改过）→ 写 <code>&lt;文件&gt;.agent-flow-new</code> 让你自己合并。<code>uninstall</code> 同理，只删没改过的。</p></div>
+    <div class="card"><h4><span class="ico">🧾</span>严格参数 + 建议</h4><p>未知命令和选项、单横线长选项、缺值、开关带值、多余的位置参数都会报错（退出码 2），并给出最接近的写法；<code>--tool</code> / <code>--mode</code> / <code>--packs</code> 的值拼错也会提示候选。</p></div>
+    <div class="card"><h4><span class="ico">✋</span>先看计划再确认</h4><p><code>init</code> / <code>upgrade</code> / <code>uninstall</code> 先打印计划：目标目录、工具、模式、packs、新建/跳过/冲突数量、<code>AGENTS.flow.md</code> 提示等，再在终端问 <code>y/N</code>。<b>非交互环境（CI、脚本、管道）没有 <code>--yes</code> 会直接拒绝执行。</b>确认时取消返回 1。</p></div>
+    <div class="card"><h4><span class="ico">🎯</span><code>--tool</code> 必填</h4><p><code>init</code> 必须明确写出装哪些工具，不再默认 <code>all</code>；<code>upgrade</code> 使用 lock 里记录的工具。</p></div>
+    <div class="card"><h4><span class="ico">🗂️</span>受保护的 <code>.cac/</code> 文件</h4><p><code>.cac/settings.json</code>、<code>AGENTS.local.md</code>、<code>output-styles/</code>、<code>hooks/</code>、<code>agent-memory*/</code> 永远不碰；卸载时也不会删项目根、<code>docs/</code>、<code>docs/flow/</code>。</p></div>
+  </div>
+
+  <h3>真实输出：漏写 <code>--</code> 的参数</h3>
+  <p style="color:var(--muted);font-size:15px">2.2.0 之前，<code>init . tool cac</code> 里的 <code>tool cac</code> 会被静默忽略，然后装上默认工具。现在（下面是我在 Windows PowerShell 里跑的输出，截掉了后面的用法说明）：</p>
+<div class="term"><span class="p">PS&gt;</span> .\bin\agent-flow.cmd init $t tool cac
+<span class="e">错误：init 多了位置参数：tool cac</span>
+<span class="h">  是不是想写 --tool cac？（选项前要加 --）</span>
+<span class="c">…（用法说明）</span>
+<span class="p">PS&gt;</span> $LASTEXITCODE
+2</div>
+  <h3>真实输出：<code>--dry-run</code> 的安装计划</h3>
+<div class="term"><span class="p">PS&gt;</span> .\bin\agent-flow.cmd init $t --tool trae,cursor --mode brownfield --dry-run
+agent-flow 2.2.0 安装计划
+  目标目录：C:\Users\ADMINI~1\AppData\Local\Temp\afprobe
+  工具：trae, cursor    模式：brownfield    packs：（无）
+  新建 46 个文件，更新 0 个，跳过 0 个（已存在或内容相同）
+  将新建：.trae  .cursor  AGENTS.md  docs
+<span class="c">（--dry-run：未写入任何文件）</span></div>
+  <p class="honest">装错了？先 <code>uninstall &lt;目录&gt; --dry-run</code> 看一下，再加 <code>--yes</code> 执行。2.1.0 及更早版本的 lock 没有记录新建目录，uninstall 会退回为删除被删文件所在的空目录。</p>
+</section>
+
+<!-- 10 -->
+<section id="windows">
+  <h2><span class="num">10</span>Windows 支持</h2>
+  <p class="sub">我自己主要在 Windows 上用，2.0.1 专门修了一轮 Windows 问题。不需要 bash，只需要 Node.js ≥ 18。</p>
+  <div class="grid g3">
+    <div class="card"><h4><span class="ico">↵</span>换行</h4><p>仓库带 <code>.gitattributes</code>（<code>* text=auto eol=lf</code>），全局 <code>core.autocrlf=true</code> 也以 LF 检出；读取时统一把 CRLF 转成 LF 并去掉 BOM，被编辑器存成 CRLF 的文件同样能解析。</p></div>
+    <div class="card"><h4><span class="ico">🔏</span>升级不误判</h4><p>指纹按 LF 计算，文件被转成 CRLF 不会被当成“你改过”。生成的文件一律是 LF，路径一律用 <code>/</code>（<code>lock.json</code> 里也是）。</p></div>
+    <div class="card"><h4><span class="ico">⌨️</span>入口</h4><p><code>bin\agent-flow.cmd</code> 包装 cmd 和 PowerShell；CLI 用 <code>pathToFileURL</code> 判断入口，Windows 路径下也能正确执行。</p></div>
+  </div>
+  <div class="grid g4" style="margin-top:16px">
+    <div class="card stat"><span class="v">34</span><span class="l">测试用例（<code>npm test</code>，Windows 本机）</span></div>
+    <div class="card stat"><span class="v ok">33</span><span class="l">通过</span></div>
+    <div class="card stat"><span class="v warn">1</span><span class="l">跳过：bash 包装的测试只在 POSIX 上运行</span></div>
+    <div class="card stat"><span class="v ok">0</span><span class="l">失败</span></div>
+  </div>
+  <p class="honest"><code>npm test</code> 实际执行 <code>node test/run.mjs</code>：它自己列出测试文件，兼容 Node 18–24（<code>node --test test/</code> 在 Node 22+ 的 Windows 上会报 MODULE_NOT_FOUND）。测试通过 <code>process.execPath</code> 调用 CLI，临时目录用 <code>realpathSync.native</code> 展开 8.3 短路径。</p>
+</section>
+
+<!-- 11 -->
 <section id="demo">
-  <h2><span class="num">05</span>实例演示：给 TODO Lens 加「按标签筛选」</h2>
+  <h2><span class="num">11</span>实例演示：给 TODO Lens 加「按标签筛选」</h2>
   <p class="sub">TODO Lens 是一个 VS Code 扩展：在侧边栏列出 TODO / FIXME，点击跳转，状态栏显示计数。第 1 轮用新建模式从零做出 v0.1；第 2 轮在它上面用存量模式加功能。下面是第 2 轮。</p>
+  <p class="honest" style="margin-top:0;margin-bottom:16px">这个示例在仓库的 <code>examples/todo-lens</code>：第 1 轮（新建模式）的交接文件在 <code>docs/flow/archive/</code>，第 2 轮（存量模式）从 <code>docs/flow/01b-impact.md</code> 看起，对话在 <code>RUN-LOG.md</code>。两轮都是在 v1.1 套件时期跑的；v2 把示例搬进了 <code>examples/</code>，流程技能的内容按上面的兼容性测试保持不变。</p>
 
   <div class="quote"><b>需求原文（00）：</b>给 TODO Lens 加按标签筛选。视图标题栏加一个筛选按钮，可以选“全部 / TODO / FIXME”（跟着配置的关键字走）；视图标题旁边显示当前筛选；状态栏也显示筛选后的数量；筛选在重启 VS Code 后保留。</div>
   <p style="color:var(--muted);font-size:15px">阶段 1 把它拆成 5 条验收标准：AC-1 筛选按钮 + QuickPick；AC-2 列表按标签过滤；AC-3 标题旁显示“筛选：X”；AC-4 状态栏显示“筛选后/总数”；AC-5 重启后保留筛选。</p>
@@ -357,8 +629,8 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
     <div>
       <h3 style="margin-top:0">影响图（按决定上色）</h3>
       <div class="mermaid-box">
-        <p class="note" id="mmNote">绿 = 通过 · 红 = 驳回 · 虚线 = 本次不改</p>
-        <pre class="mermaid" id="mm" style="position:absolute;left:-9999px;top:0;width:900px;visibility:hidden">flowchart LR
+        <p class="note" >绿 = 通过 · 红 = 驳回 · 虚线 = 本次不改</p>
+        <pre class="mermaid" style="position:absolute;left:-9999px;top:0;width:900px;visibility:hidden">flowchart LR
   classDef approved fill:#2e7d32,color:#fff,stroke:#1b5e20
   classDef rejected fill:#c62828,color:#fff,stroke:#8e0000
   classDef ctx fill:none,stroke:#888,stroke-dasharray:3 3
@@ -377,7 +649,7 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
   ext4 -.-> tree
   ext5 -.-> ext3
   welcome -.->|"空列表时显示"| tree</pre>
-        <div class="mermaid-fallback" id="mmFallback">
+        <div class="mermaid-fallback" >
           <span class="node a">P-2 package.json<small>命令 + 菜单</small></span>→
           <span class="node a">P-3 extension.ts<small>createTreeView + pickTag</small></span>→
           <span class="node a">P-1 todoTree.ts<small>filter + countsByTag</small></span>→
@@ -435,54 +707,42 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
   <p class="honest">说明：这是示例环境中的运行，示例项目没有 git，01b 的 baseline 写的是 <code>v0.1.0</code>；在真实项目里应该是 <code>git rev-parse --short HEAD</code>。部分验证（标题栏图标、视图描述）标注为需要手动确认。</p>
 </section>
 
-<!-- 6 -->
+<!-- 12 -->
 <section id="usage">
-  <h2><span class="num">06</span>如何使用</h2>
-  <h3>安装</h3>
-<pre><code>./agent-workflow-kit/install.sh /path/to/your-project               # Trae 和 Cursor 都装（默认）
-./agent-workflow-kit/install.sh /path/to/your-project --trae        # 只装 Trae（--cursor 只装 Cursor）
-./agent-workflow-kit/install.sh /path/to/existing-project --brownfield   # 已有项目：默认存量模式
-./agent-workflow-kit/install.sh /path/to/project --upgrade          # 从 v1.0 升级：覆盖 flow-* 技能、规则和智能体</code></pre>
-  <div class="grid g3">
-    <div class="card"><h4><span class="ico">1</span>不覆盖已有文件</h4><p>默认只新增文件。项目里已有 <code>AGENTS.md</code> 时会生成 <code>AGENTS.flow.md</code>，需要手动合并「开发流程」一节。</p></div>
-    <div class="card"><h4><span class="ico">2</span>填写项目信息</h4><p>把 <code>AGENTS.md</code> 的「项目信息」（技术栈、命令、约定）填好，这是性价比最高的上下文。</p></div>
-    <div class="card"><h4><span class="ico">3</span>先提交一次</h4><p>存量模式建议在 git 仓库里用、开始前先提交：01b 记录 baseline，04 和 05 用 <code>git diff</code> 做范围核对。</p></div>
-  </div>
-
+  <h2><span class="num">12</span>装好之后怎么触发</h2>
   <h3>Trae 必做设置</h3>
   <div class="card">
     <ol style="margin:0;padding-left:20px;color:var(--muted)">
       <li><b style="color:var(--fg)">设置 &gt; 规则</b>：打开「将 AGENTS.md 包含在上下文中」。</li>
-      <li><b style="color:var(--fg)">设置 &gt; Beta &gt; Subagents</b>：确认「启用 Subagents 目录」已打开（通常默认开启）。</li>
-      <li>对话时选择内置的 <b style="color:var(--fg)">「Agent」</b> 智能体——只有内置 Agent 能调用 <code>.trae/agents/</code> 里的子智能体。</li>
-      <li>（可选）想直接 <code>@</code> 某个阶段的智能体：创建智能体，把 <code>.trae/agents/flow-*.md</code> 正文粘贴为提示词，勾选对应工具并打开「可被其他智能体调用」。</li>
+      <li><b style="color:var(--fg)">设置 &gt; Beta &gt; Subagents</b>：启用 Subagents 目录。</li>
+      <li>对话时选择内置的 <b style="color:var(--fg)">「Agent」</b>——只有内置 Agent 能调用 <code>.trae/agents/</code> 里的子智能体。</li>
     </ol>
-    <p style="margin-top:10px">Cursor 不需要额外设置，在 Customize &gt; Skills 中能看到 7 个 <code>flow-*</code> 技能。</p>
+    <p style="margin-top:10px">Cursor 和 Claude Code 不需要额外设置，装好后就能看到 7 个 <code>flow-*</code> 技能。</p>
   </div>
 
-  <h3>怎么触发</h3>
+  <h3>说什么</h3>
   <div class="tbl">
     <table>
-      <thead><tr><th>想做什么</th><th>Trae（内置 Agent）</th><th>Cursor（Agent 模式）</th></tr></thead>
+      <thead><tr><th>想做什么</th><th>Trae（内置 Agent）</th><th>Cursor / Claude Code</th></tr></thead>
       <tbody>
         <tr><td>从需求开始走完整流程</td><td><code>走流程：&lt;需求&gt;</code></td><td><code>/flow-orchestrator 走流程：&lt;需求&gt;</code></td></tr>
         <tr><td><b>在已有代码上改造</b></td><td><code>改造：&lt;需求&gt;</code></td><td><code>/flow-orchestrator 改造：&lt;需求&gt;</code></td></tr>
-        <tr><td>逐点审批改动</td><td><code>通过 1,3</code> · <code>驳回 2：理由</code> · <code>修改 2：…</code> · <code>按清单</code></td><td>同左</td></tr>
+        <tr><td>逐点审批改动</td><td class="wrap"><code>通过 1,3</code> · <code>驳回 2：理由</code> · <code>修改 2：…</code> · <code>全部通过</code> · <code>按清单</code> · <code>重新定位</code></td><td>同左</td></tr>
         <tr><td>只看“要改哪里”</td><td><code>定位</code> / <code>影响分析</code></td><td><code>/flow-locate</code></td></tr>
         <tr><td>确认并进入下一阶段</td><td><code>通过</code></td><td><code>通过</code></td></tr>
         <tr><td>修改当前阶段 / 回退</td><td><code>修改：&lt;意见&gt;</code> · <code>回到 2</code></td><td>同左</td></tr>
         <tr><td>查看进度</td><td><code>流程状态</code></td><td>同左</td></tr>
-        <tr><td>让阶段 1–3 连续执行</td><td><code>连续模式</code></td><td>同左（写代码前仍会停下）</td></tr>
+        <tr><td>让阶段 1–3 连续执行</td><td><code>连续模式</code></td><td class="wrap">同左（写代码前仍会停下，也不会跳过 01b 逐点审批）</td></tr>
         <tr><td>只跑某个阶段</td><td><code>用 flow-review 技能评审当前改动</code></td><td><code>/flow-review</code></td></tr>
-        <tr><td>强制加载入口规则</td><td><code>#Rule flow-workflow</code></td><td><code>@flow-workflow</code></td></tr>
       </tbody>
     </table>
   </div>
+  <p class="honest">建议每个阶段开一个新对话，第一句说「继续流程」：编排器读 <code>docs/flow/</code> 判断进度，最省 token。generic 模式下的工具没有斜杠命令，直接用左列的说法。</p>
 </section>
 
-<!-- 7 -->
+<!-- 13 -->
 <section id="token">
-  <h2><span class="num">07</span>Token 成本与省 token 做法</h2>
+  <h2><span class="num">13</span>Token 成本与省 token 做法</h2>
   <p class="sub">先说实话：分阶段一定比“一句话让 AI 直接改”多几轮对话、多几份文档。我没有做精确的 token 计量，示例里也没有记录用量数据，所以这里只讲成本从哪来、我怎么压。</p>
   <div class="grid g2">
     <div class="card">
@@ -492,6 +752,7 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
         <li>交接文件要被下一阶段重新读取。</li>
         <li>01b 要逐字摘录代码、写 diff 预览，比直接改代码多产出不少文字。</li>
         <li>实现中途 ⛔ 暂停再继续，会多一轮往返。</li>
+        <li>启用 pack 后，相关阶段技能末尾会多一段「技术栈补充」。</li>
       </ul>
     </div>
     <div class="card">
@@ -503,50 +764,91 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
       </ul>
     </div>
   </div>
-  <h3>套件里用到的省 token 做法</h3>
+  <h3>用到的省 token 做法</h3>
   <div class="tbl">
     <table>
       <thead><tr><th>做法</th><th>具体怎么做</th></tr></thead>
       <tbody>
-        <tr><td>每个阶段新开对话</td><td>第一句写「继续流程」，编排器读取 <code>docs/flow/</code> 判断进度。下一阶段只读交接文件，不依赖聊天记录。</td></tr>
-        <tr><td>Skill 按需加载</td><td>编排器“只读取当前阶段对应的那个技能”；规则全量注入、Skill 按需注入，所以详细步骤都放 Skill。</td></tr>
-        <tr><td>规则限定作用范围</td><td>交接格式规则用 <code>globs: docs/flow/**</code>，只在读写交接文件时生效；入口规则和护栏规则是“智能生效”。</td></tr>
-        <tr><td>交接文件精简</td><td>只写结论；不粘贴完整日志；单个 .md 尽量 ≤ 200 行；01b 代码摘录 ≤ 15 行。</td></tr>
-        <tr><td>子代理隔离</td><td>阶段工作委派给子代理，主对话只看到摘要和确认提示。</td></tr>
-        <tr><td>AGENTS.md 写短</td><td>只写技术栈、目录、命令、约定（指南建议约 200 行以内），作为两款 IDE 共用的事实来源。</td></tr>
+        <tr><td>每个阶段新开对话</td><td class="wrap">第一句写「继续流程」，编排器读取 <code>docs/flow/</code> 判断进度。下一阶段只读交接文件，不依赖聊天记录。</td></tr>
+        <tr><td>Skill 按需加载</td><td class="wrap">编排器“只读取当前阶段对应的那个技能”；规则全量注入、Skill 按需注入，所以详细步骤都放 Skill。</td></tr>
+        <tr><td>规则限定作用范围</td><td class="wrap">交接格式规则用 <code>globs: docs/flow/**</code>，只在读写交接文件时生效（Claude Code / CodeAgent 里渲染成 <code>paths</code>）。</td></tr>
+        <tr><td>技术栈内容按需装</td><td class="wrap">VS Code、Web、Java 的要点放在 pack 里，只有检测命中或指定的 pack 才会进入技能。</td></tr>
+        <tr><td>交接文件精简</td><td class="wrap">只写结论；不粘贴完整日志；单个 .md 尽量 ≤ 200 行；01b 代码摘录 ≤ 15 行。</td></tr>
+        <tr><td>子代理隔离</td><td class="wrap">阶段工作委派给子代理，主对话只看到摘要和确认提示。</td></tr>
+        <tr><td>AGENTS.md 写短</td><td class="wrap">只写技术栈、目录、命令、约定（指南建议约 200 行以内），作为各工具共用的事实来源。</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="honest">指南里还提到几条我在这个套件之外也在用的：忽略 <code>dist/</code>、<code>out/</code>、<code>node_modules/</code> 等噪声目录；能用 CLI 就不用 MCP；不用的 MCP 关掉；换任务直接新开对话，因为 prompt caching 只对不变的前缀有效。</p>
+  <p class="honest">指南里还提到几条我在这个项目之外也在用的：忽略 <code>dist/</code>、<code>out/</code>、<code>node_modules/</code> 等噪声目录；能用 CLI 就不用 MCP；不用的 MCP 关掉；换任务直接新开对话，因为 prompt caching 只对不变的前缀有效。</p>
 </section>
 
-<!-- 8 -->
+<!-- 14 -->
+<section id="history">
+  <h2><span class="num">14</span>版本历史</h2>
+  <p class="sub">完整内容见仓库的 <code>CHANGELOG.md</code>。</p>
+  <ul class="timeline">
+    <li><span class="ver">2.2.0</span><span class="date">2026-10-20 · 当前版本</span>
+      <ul>
+        <li>修复：漏写 <code>--</code> 的参数（如 <code>init . tool cac</code>）以前会被静默忽略并安装默认工具；现在所有命令严格解析，报错（退出码 2）并给出建议。</li>
+        <li>不兼容变更：<code>init</code> 必须显式 <code>--tool</code>；<code>init</code> / <code>upgrade</code> 先打印计划并询问 <code>y/N</code>，新增 <code>--yes</code> / <code>--dry-run</code>，非 TTY 下没有 <code>--yes</code> 拒绝执行；错误退出码由 1 改为 2。</li>
+        <li>新增 <code>uninstall</code>；lock 新增 <code>dirs</code>；再次 <code>init</code> 新工具时保留之前装的工具。</li>
+      </ul></li>
+    <li><span class="ver">2.1.0</span><span class="date">2026-10-20</span>
+      <ul>
+        <li>新 adapter codeagent（别名 <code>cac</code>），复用 claude-code 的渲染；格式 assumed, unverified，不在 <code>--tool all</code> 中，不碰 <code>.cac/</code> 下的用户文件。</li>
+        <li>CLI 支持工具别名（<code>cac</code>、<code>claude-code</code>）；adapter 可声明 <code>ownInstructions</code>。</li>
+      </ul></li>
+    <li><span class="ver">2.0.1</span><span class="date">2026-10-20</span>
+      <ul>
+        <li>Windows 修复：<code>.gitattributes</code>、CRLF/BOM 容错、按 LF 计算指纹、<code>pathToFileURL</code> 入口、<code>bin/agent-flow.cmd</code>、跨平台测试入口 <code>test/run.mjs</code>。</li>
+      </ul></li>
+    <li><span class="ver">2.0.0</span><span class="date">2026-10-20</span>
+      <ul>
+        <li>从 agent-workflow-kit v1.1 重构为 agent-flow：<code>core/</code> + <code>packs/</code> + <code>adapters/</code> 三层结构，零依赖 CLI（<code>init</code>、<code>upgrade</code>、<code>list-packs</code>、<code>new-pack</code>、<code>build</code>）。</li>
+        <li>新增 Claude Code、generic；packs：vscode-extension、web 稳定版，java-backend 骨架，_template；pack 自动检测。</li>
+        <li><code>install.sh</code> / <code>sync-skills.sh</code> 被 CLI 取代；示例移到 <code>examples/todo-lens</code>。</li>
+      </ul></li>
+    <li class="old"><span class="ver">1.1.0</span><span class="date">2026-10-19 · agent-workflow-kit</span><p>存量改造（brownfield）模式：<code>flow-locate</code>、<code>01b-impact.md</code> 逐点审批、范围护栏、按点变更摘要。</p></li>
+    <li class="old"><span class="ver">1.0.0</span><span class="date">2026-10-19 · agent-workflow-kit</span><p>首版：5 阶段技能、编排器、Trae / Cursor 布局、TODO Lens 示例。</p></li>
+  </ul>
+</section>
+
+<!-- 15 -->
 <section id="reflect">
-  <h2><span class="num">08</span>我的收获与下一步探索</h2>
-  <p class="sub">跑完两轮小例子后的一些想法。样本很小，下面更多是体会而不是结论。</p>
+  <h2><span class="num">15</span>我的收获与下一步探索</h2>
+  <p class="sub">跑完两轮小例子、又把它重构成 v2 之后的一些想法。样本很小，下面更多是体会而不是结论。</p>
 
   <div class="grid g2 refl">
     <div class="card"><h4>“先列改动点”比“写得好”更重要</h4><p>在已有代码上，我最在意的是 AI 会不会乱改。01b 把每个点落到文件和行号、配上 diff 预览之后，我在写代码前就能判断“这个要、这个不要”。示例里状态栏和持久化两个点就是在这一步被我拿掉的。</p></div>
     <div class="card"><h4>⛔ 暂停是设计目标，不是故障</h4><p>实现中途发现要改白名单外的文件时，Agent 停下来问我，而不是默默改掉。这次的理由（为了可单测，抽出纯函数）是合理的，我批准了；但关键是这个决定由我来做，并且有记录可查。</p></div>
-    <div class="card"><h4>人在回路有代价</h4><p>每一步都要我看、要我回复，节奏明显变慢。小改动走完整流程不划算，所以套件里留了「连续模式」和单独调用某个阶段的入口。什么规模的需求值得走流程，我还没有清晰的标准。</p></div>
-    <div class="card"><h4>验证还没闭环</h4><p>单测 5/5 通过，但集成测试在示例环境里没有运行，几项 UI 验证也标注为“需手动”。评审能核对范围，却没法替代真正跑起来看一眼。这是下一步最想补的地方。</p></div>
-    <div class="card"><h4>写成 Skill，跨工具基本可行</h4><p>同一套 <code>SKILL.md</code> 在 Trae 和 Cursor 里都能用，差别主要在规则文件后缀、子代理字段和 Trae 的几个开关。维护两份目录靠一个同步脚本，目前还能接受。</p></div>
+    <div class="card"><h4>人在回路有代价</h4><p>每一步都要我看、要我回复，节奏明显变慢。小改动走完整流程不划算，所以留了「连续模式」和单独调用某个阶段的入口。什么规模的需求值得走流程，我还没有清晰的标准。</p></div>
+    <div class="card"><h4>验证还没闭环</h4><p>单测 5/5 通过，但集成测试在示例环境里没有运行，几项 UI 验证也标注为“需手动”。评审能核对范围，却没法替代真正跑起来看一眼。</p></div>
+    <div class="card"><h4>把“工具差异”从流程里拿出去</h4><p>v1 时两份目录靠同步脚本维护，加第三个工具就会失控。v2 把差异收进 adapter 之后，加 Claude Code、CodeAgent 基本只是写一个渲染器，流程文字一行不用动。同样，技术栈的内容进了 pack，core 里只剩通用表述。</p></div>
+    <div class="card"><h4>安装工具本身也要“人在回路”</h4><p>2.2.0 修的问题很典型：少打两个横线，CLI 不报错，却装上了我没要的工具。流程里我要求 AI 先给计划再动手，CLI 现在也一样：先打印计划、问 y/N、参数不对就停下给建议。</p></div>
+    <div class="card"><h4>没核对过的就明说</h4><p>CodeAgent 的格式我没法核对，所以文档、代码、CHANGELOG 里都标了 assumed, unverified，也不放进 <code>--tool all</code>；java-backend 同样标着 <code>TODO(未验证)</code>。宁可少支持一点，也不要让人误以为它已经验证过。</p></div>
   </div>
 
   <h3>下一步想试的</h3>
   <div class="grid g2">
+    <div class="card"><h4><span class="ico">🔎</span>核对 CodeAgent、补齐 java-backend</h4><p>拿到 CodeAgent 官方文档后逐项核对 <code>.cac/</code> 的格式；找一个真实的 Spring Boot 项目跑通 java-backend，把 <code>TODO(未验证)</code> 一条条消掉，再转 stable。</p></div>
     <div class="card"><h4><span class="ico">⚡</span>并行子代理</h4><p>现在是一个阶段一个子代理、串行推进。想试试在 01b 定位或评审时把不同模块交给多个子代理并行处理，看看速度和质量会怎么变，冲突怎么合并。</p></div>
-    <div class="card"><h4><span class="ico">🎭</span>Playwright CLI 做验证</h4><p>指南里提到 Playwright CLI + Skill 比 Playwright MCP 更省 token，快照写到文件而不是塞进上下文。想把它接进 04/05，让“需手动验证”的项变成可自动执行的检查。</p></div>
-    <div class="card"><h4><span class="ico">🎨</span>Figma MCP</h4><p>03 草图阶段现在是 ASCII 线框图加单文件 HTML 原型。想探索从设计稿读取信息来驱动这一阶段，前提是先弄清楚它对上下文的占用。</p></div>
+    <div class="card"><h4><span class="ico">🎭</span>Playwright CLI 做验证</h4><p>web pack 已经把 <code>npx playwright test</code> 列为验证命令。想进一步把 Playwright CLI + Skill 接进 04/05，让“需手动验证”的项变成可自动执行的检查。</p></div>
     <div class="card"><h4><span class="ico">🚦</span>CI 门禁</h4><p>范围核对现在靠 Agent 自己跑 <code>git diff</code>。如果把“改动文件 ⊆ allowed_files”和“交接文件 status 正确”放进 CI，就不必只相信 Agent 的自查。</p></div>
   </div>
 </section>
 
-<!-- 9 -->
+<!-- 16 -->
 <section id="refs">
-  <h2><span class="num">09</span>参考链接</h2>
-  <p class="sub">均来自我整理的《AI 辅助编程提效指南》，写作时（2026-10）核对过。</p>
+  <h2><span class="num">16</span>参考链接</h2>
+  <p class="sub">项目本身，以及我整理的《AI 辅助编程提效指南》里用到的文档，写作时（2026-10）核对过。</p>
   <div class="refs">
+    <h4>本项目</h4>
+    <ul>
+      <li><a href="https://github.com/tegixia0/agent-flow" target="_blank" rel="noopener">GitHub：tegixia0/agent-flow</a></li>
+      <li><a href="https://github.com/tegixia0/agent-flow/blob/main/README.md" target="_blank" rel="noopener">README</a> · <a href="https://github.com/tegixia0/agent-flow/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG</a></li>
+      <li><a href="https://github.com/tegixia0/agent-flow/blob/main/docs/architecture.md" target="_blank" rel="noopener">架构</a> · <a href="https://github.com/tegixia0/agent-flow/blob/main/docs/adapters.md" target="_blank" rel="noopener">Adapters</a> · <a href="https://github.com/tegixia0/agent-flow/blob/main/docs/how-to-add-a-pack.md" target="_blank" rel="noopener">如何新增 pack</a></li>
+      <li><a href="https://github.com/tegixia0/agent-flow/tree/main/examples/todo-lens" target="_blank" rel="noopener">examples/todo-lens</a></li>
+    </ul>
     <h4>Trae 文档</h4>
     <ul>
       <li><a href="https://docs.trae.ai/ide/rules" target="_blank" rel="noopener">规则 Rules</a></li>
@@ -561,6 +863,10 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
       <li><a href="https://cursor.com/docs/rules" target="_blank" rel="noopener">Rules</a> · <a href="https://cursor.com/docs/skills" target="_blank" rel="noopener">Skills</a></li>
       <li><a href="https://cursor.com/docs/subagents" target="_blank" rel="noopener">Subagents</a> · <a href="https://cursor.com/docs/mcp" target="_blank" rel="noopener">MCP</a></li>
       <li><a href="https://cursor.com/docs/reference/ignore-file" target="_blank" rel="noopener">Ignore file</a></li>
+    </ul>
+    <h4>Claude Code 文档</h4>
+    <ul>
+      <li><a href="https://code.claude.com/docs" target="_blank" rel="noopener">code.claude.com/docs</a>（memory、skills、sub-agents）</li>
     </ul>
     <h4>规范与 Skills</h4>
     <ul>
@@ -592,42 +898,50 @@ footer{margin-top:60px;padding:28px 0 40px;border-top:1px solid var(--line);colo
 
 <footer>
   <div class="wrap">
-    作者：tegixia · agent-workflow-kit v1.1 · 本页内容整理自套件 README、示例 RUN-LOG 与 docs/flow 交接文件；数据均来自示例运行记录，未做额外推断。
+    作者：tegixia · agent-flow v2.2.0 · <a href="https://github.com/tegixia0/agent-flow" target="_blank" rel="noopener">github.com/tegixia0/agent-flow</a><br>
+    本页内容整理自仓库的 README、CHANGELOG、docs/、packs/*/pack.yaml、示例 RUN-LOG 与 docs/flow 交接文件；测试数字与 CLI 输出来自我在 Windows 本机上的运行，未做额外推断。
   </div>
 </footer>
 
 <script>
 (function(){
-  // theme toggle
   var root=document.documentElement, btn=document.getElementById('themeBtn');
-  try{var saved=localStorage.getItem('awk-theme'); if(saved) root.setAttribute('data-theme',saved);}catch(e){}
+  function isDark(){return (root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark';}
+  try{var saved=localStorage.getItem('af-theme')||localStorage.getItem('awk-theme'); if(saved) root.setAttribute('data-theme',saved);}catch(e){}
+  // optional mermaid with graceful fallback; re-rendered when the theme changes
+  var boxes=[].slice.call(document.querySelectorAll('.mermaid-box'));
+  boxes.forEach(function(b){var pre=b.querySelector('pre.mermaid'); if(pre) pre.setAttribute('data-src',pre.innerHTML);});
+  var ready=false;
+  function render(){
+    if(!ready) return;
+    try{
+      mermaid.initialize({startOnLoad:false,theme:isDark()?'dark':'default',securityLevel:'strict'});
+      boxes.forEach(function(b){
+        var el=b.querySelector('pre.mermaid'), fb=b.querySelector('.mermaid-fallback'); if(!el) return;
+        el.removeAttribute('data-processed'); el.innerHTML=el.getAttribute('data-src');
+        mermaid.run({nodes:[el]}).then(function(){
+          el.removeAttribute('style'); el.style.background='none'; el.style.border='0'; el.style.margin='0'; el.style.padding='0';
+          if(fb) fb.style.display='none';
+        }).catch(function(){});
+      });
+    }catch(e){}
+  }
   btn.addEventListener('click',function(){
-    var cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-    var next=cur==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
-    try{localStorage.setItem('awk-theme',next);}catch(e){}
+    var next=isDark()?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('af-theme',next);}catch(e){}
+    render();
   });
   // toc highlight
   var links=[].slice.call(document.querySelectorAll('nav.toc a'));
   if('IntersectionObserver' in window){
     var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){
-      links.forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id);});}});},{rootMargin:'-45% 0px -50% 0px'});
+      links.forEach(function(a){var on=a.getAttribute('href')==='#'+e.target.id; a.classList.toggle('active',on); if(on&&a.scrollIntoView&&a.parentNode.scrollWidth>a.parentNode.clientWidth){a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;}});}});},{rootMargin:'-45% 0px -50% 0px'});
     document.querySelectorAll('main section').forEach(function(s){io.observe(s);});
   }
-  // optional mermaid with graceful fallback
   var s=document.createElement('script');
   s.src='https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
   s.async=true;
-  s.onload=function(){
-    try{
-      var dark=(root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark';
-      mermaid.initialize({startOnLoad:false,theme:dark?'dark':'default',securityLevel:'strict'});
-      var el=document.getElementById('mm');
-      mermaid.run({nodes:[el]}).then(function(){
-        el.removeAttribute('style'); el.style.background='none'; el.style.border='0'; el.style.margin='0'; el.style.padding='0';
-        document.getElementById('mmFallback').style.display='none';
-      }).catch(function(){});
-    }catch(e){}
-  };
+  s.onload=function(){ready=true; render();};
   document.head.appendChild(s);
 })();
 </script>
