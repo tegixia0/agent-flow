@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { execFileSync, execSync } from 'node:child_process';
+import { execFileSync, execSync, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
-import { init, upgrade, newPack, build, ADAPTERS } from '../bin/agent-flow.mjs';
+import { init, upgrade, newPack, build, ADAPTERS, uninstall, uninstallPlan, parseArgs, confirm } from '../bin/agent-flow.mjs';
 import { ROOT, listPacks } from '../lib/model.mjs';
 import { walk, read } from '../lib/util.mjs';
 import { splitFrontmatter, parseYaml } from '../lib/yaml.mjs';
@@ -207,7 +207,7 @@ test('CLI 可通过 node 运行（跨平台）', () => {
   const out = execFileSync(process.execPath, [path.join(ROOT, 'bin', 'agent-flow.mjs'), 'list-packs']).toString();
   assert.match(out, /vscode-extension/);
   const d = tmp();
-  execFileSync(process.execPath, [path.join(ROOT, 'bin', 'agent-flow.mjs'), 'init', d, '--tool', 'cursor', '--packs', 'none']);
+  execFileSync(process.execPath, [path.join(ROOT, 'bin', 'agent-flow.mjs'), 'init', d, '--tool', 'cursor', '--packs', 'none', '--yes']);
   assert.ok(fs.existsSync(path.join(d, '.cursor', 'rules', 'flow-workflow.mdc')));
 });
 
@@ -338,4 +338,162 @@ test('codeagent：upgrade 覆盖未改文件、保留改过的文件和用户文
   assert.match(read(edited), /自定义/);
   assert.match(read(pristine), /^---\nname: flow-analyst/);
   for (const [f, c] of Object.entries(CAC_USER_FILES)) assert.equal(read(path.join(d, f)), c);
+});
+
+
+// ---------------- 2.2.0：严格参数、显式 --tool、计划确认、uninstall ----------------
+const CLI = path.join(ROOT, 'bin', 'agent-flow.mjs');
+const run = (args, opts = {}) => {
+  const r = spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], ...opts });
+  return { code: r.status, out: r.stdout, err: r.stderr };
+};
+
+test('严格参数：漏写 -- 的 `init . tool cac` 报错并提示 --tool cac，不写任何文件', () => {
+  const d = tmp();
+  const r = run(['init', d, 'tool', 'cac', '--mode', 'brownfield']);
+  assert.equal(r.code, 2);
+  assert.match(r.err, /多了位置参数：tool cac/);
+  assert.match(r.err, /是不是想写 --tool cac？/);
+  assert.match(r.err, /用法：/);
+  assert.deepEqual(fs.readdirSync(d), []);
+});
+
+test('严格参数：各种错误都给出建议', () => {
+  const cases = [
+    [['init', '.', 'cac'], /是不是想写 --tool cac？/],
+    [['init', '.', '--tool', 'cac', 'brownfield'], /是不是想写 --mode brownfield？/],
+    [['init', '.', '--tol', 'cac'], /不支持选项 --tol。是不是想写 --tool？/],
+    [['init', '.', '-tool', 'cac'], /是不是想写 --tool？/],
+    [['init', '.', '--tool', 'cak'], /未知工具：cak。是不是想写 cac？/],
+    [['init', '.', '--tool', 'trae,cusor'], /未知工具：cusor。是不是想写 cursor？/],
+    [['init', '.', '--tool', 'cac', '--mode', 'brownfeild'], /未知模式：brownfeild。是不是想写 brownfield？/],
+    [['init', '.', '--tool', 'cac', '--packs', 'wbe'], /找不到 pack：wbe。是不是想写 web？/],
+    [['init', '.', '--tool'], /--tool 需要一个值/],
+    [['init', '.', '--tool', '--yes'], /--tool 需要一个值/],
+    [['init', '.', '--yes=1', '--tool', 'cac'], /是开关，不接受值/],
+    [['init'], /缺少参数：<项目目录>/],
+    [['instal', '.'], /未知命令：instal。是不是想用 init？/],
+    [['remove', '.'], /是不是想用 uninstall？/],
+    [['upgrade', '.', '--tool', 'cac'], /upgrade 不支持选项 --tool/],
+    [['build', 'extra'], /build 多了位置参数：extra/],
+    [['list-packs', '--projct', '.'], /是不是想写 --project？/],
+  ];
+  for (const [args, re] of cases) {
+    const r = run(args, { cwd: tmp() });
+    assert.equal(r.code, 2, args.join(' '));
+    assert.match(r.err, re, `${args.join(' ')}\n${r.err}`);
+  }
+});
+
+test('init 必须显式 --tool（不再默认 all）', () => {
+  const d = tmp();
+  const r = run(['init', d, '--yes']);
+  assert.equal(r.code, 2);
+  assert.match(r.err, /请用 --tool 指定/);
+  assert.deepEqual(fs.readdirSync(d), []);
+  assert.throws(() => init(d, {}, quiet), /请用 --tool 指定/);
+});
+
+test('计划 + 确认：非 TTY 无 --yes 拒绝；--dry-run 只打印计划；--yes 写入', () => {
+  const d = tmp({ 'AGENTS.md': '# mine\n' });
+  const noYes = run(['init', d, '--tool', 'cac,cursor', '--mode', 'brownfield', '--packs', 'none']);
+  assert.equal(noYes.code, 2);
+  assert.match(noYes.out, /安装计划[\s\S]*目标目录：[\s\S]*工具：codeagent, cursor\s+模式：brownfield\s+packs：（无）/);
+  assert.match(noYes.out, /新建 \d+ 个文件/);
+  assert.match(noYes.out, /AGENTS\.md 已存在且不是 agent-flow 生成的：将写入 AGENTS\.flow\.md/);
+  assert.match(noYes.err, /请加 --yes/);
+  assert.deepEqual(fs.readdirSync(d), ['AGENTS.md']);
+  const dry = run(['init', d, '--tool', 'cac', '--dry-run']);
+  assert.equal(dry.code, 0);
+  assert.match(dry.out, /--dry-run：未写入任何文件/);
+  assert.deepEqual(fs.readdirSync(d), ['AGENTS.md']);
+  const ok = run(['init', d, '--tool', 'cac', '-y', '--packs', 'none']);
+  assert.equal(ok.code, 0, ok.err);
+  assert.ok(fs.existsSync(path.join(d, '.cac/AGENTS.md')));
+});
+
+test('confirm：y 继续，回车/其他取消', async () => {
+  const { PassThrough } = await import('node:stream');
+  const ask = async (answer) => {
+    const input = new PassThrough(); input.isTTY = true;
+    const output = new PassThrough();
+    const p = confirm('继续？', { input, output });
+    input.end(answer + '\n');
+    return p;
+  };
+  assert.equal(await ask('y'), true);
+  assert.equal(await ask('YES'), true);
+  assert.equal(await ask(''), false);
+  assert.equal(await ask('n'), false);
+  assert.equal(await confirm('x', { yes: true }), true);
+  await assert.rejects(confirm('x', { input: { isTTY: false } }), /--yes/);
+});
+
+test('uninstall：只删未修改文件和新建的空目录，保留用户文件与已修改文件', () => {
+  const d = tmp({ 'docs/flow/00-requirement.md': '# 我的需求\n', '.cursor/rules/mine.mdc': 'mine\n', 'src/a.ts': 'x\n' });
+  init(d, { tool: 'all', packs: 'none' }, quiet);
+  fs.appendFileSync(path.join(d, '.trae/rules/flow-workflow.md'), '\n- 我改的\n');
+  const dry = uninstallPlan(d, {});
+  assert.deepEqual(dry.modified, ['.trae/rules/flow-workflow.md']);
+  assert.ok(dry.delete.length > 50);
+  const r = uninstall(d, {}, quiet);
+  assert.deepEqual(r.modified, ['.trae/rules/flow-workflow.md']);
+  assert.equal(read(path.join(d, '.trae/rules/flow-workflow.md')).includes('我改的'), true);
+  assert.equal(read(path.join(d, '.cursor/rules/mine.mdc')), 'mine\n');
+  assert.equal(read(path.join(d, 'docs/flow/00-requirement.md')), '# 我的需求\n');
+  assert.ok(!fs.existsSync(path.join(d, '.claude')), '.claude 整个被删除');
+  assert.ok(!fs.existsSync(path.join(d, 'CLAUDE.md')) && !fs.existsSync(path.join(d, 'AGENTS.md')));
+  assert.ok(!fs.existsSync(path.join(d, '.cursor/skills')) && fs.existsSync(path.join(d, '.cursor/rules')), '.cursor 原有目录保留');
+  assert.ok(fs.existsSync(path.join(d, 'docs/flow')) && !fs.existsSync(path.join(d, 'docs/flow/README.md')));
+  const lock = JSON.parse(read(path.join(d, '.agent-flow/lock.json')));
+  assert.deepEqual(Object.keys(lock.files), ['.trae/rules/flow-workflow.md']);
+  assert.deepEqual(lock.tools, []);
+});
+
+test('uninstall --tool：只卸载指定工具，共享文件留给其他工具', () => {
+  const d = tmp();
+  init(d, { tool: 'trae,cursor,claude', packs: 'none' }, quiet);
+  const r = uninstall(d, { tool: 'claude,cursor' }, quiet);
+  assert.deepEqual(r.keepTools, ['trae']);
+  assert.ok(!fs.existsSync(path.join(d, '.claude')) && !fs.existsSync(path.join(d, '.cursor')) && !fs.existsSync(path.join(d, 'CLAUDE.md')));
+  assert.ok(fs.existsSync(path.join(d, '.trae/skills/flow-review/SKILL.md')) && fs.existsSync(path.join(d, 'AGENTS.md')) && fs.existsSync(path.join(d, 'docs/flow/README.md')));
+  const lock = JSON.parse(read(path.join(d, '.agent-flow/lock.json')));
+  assert.deepEqual(lock.tools, ['trae']);
+  assert.ok(Object.keys(lock.files).every((f) => !f.startsWith('.cursor') && !f.startsWith('.claude')));
+  assert.equal(upgrade(d, {}, quiet).report.conflicts.length, 0);
+  assert.throws(() => uninstall(d, { tool: 'cac' }, quiet), /lock 中没有安装这些工具：codeagent/);
+});
+
+test('uninstall：完全卸载后移除 lock；兼容 2.1.0 旧 lock（没有 dirs）', () => {
+  const d = tmp({ 'docs/notes.md': 'keep\n' });
+  init(d, { tool: 'trae,cursor,claude', packs: 'none' }, quiet);
+  const lp = path.join(d, '.agent-flow/lock.json');
+  const lock = JSON.parse(read(lp)); delete lock.dirs; lock.version = '2.1.0';
+  fs.writeFileSync(lp, JSON.stringify(lock));
+  uninstall(d, {}, quiet);
+  assert.deepEqual(fs.readdirSync(d).sort(), ['docs']);
+  assert.deepEqual(walk(d), ['docs/notes.md']);
+  assert.ok(fs.existsSync(path.join(d, 'docs/flow')), 'docs/flow 永不删除');
+});
+
+test('uninstall CLI：计划、--dry-run、--yes', () => {
+  const d = tmp();
+  init(d, { tool: 'cursor', packs: 'none' }, quiet);
+  const dry = run(['uninstall', d, '--dry-run']);
+  assert.equal(dry.code, 0);
+  assert.match(dry.out, /卸载计划[\s\S]*卸载工具：cursor[\s\S]*删除 \d+ 个未修改的文件/);
+  assert.ok(fs.existsSync(path.join(d, '.cursor')));
+  assert.equal(run(['uninstall', d]).code, 2);
+  const ok = run(['uninstall', d, '--yes']);
+  assert.equal(ok.code, 0, ok.err);
+  assert.match(ok.out, /完成：删除 \d+ 个文件/);
+  assert.deepEqual(fs.readdirSync(d).sort(), ['docs']);
+  assert.match(run(['uninstall', d, '--yes']).err, /没有用 agent-flow 安装过/);
+});
+
+test('parseArgs：-- 之后都是位置参数；短选项 -y -h', () => {
+  assert.equal(parseArgs(['init', '.', '-y', '--tool=cac']).yes, true);
+  assert.equal(parseArgs(['init', '.', '--tool=cac']).tool, 'cac');
+  assert.equal(parseArgs(['init', '-h']).help, true);
+  assert.throws(() => parseArgs(['init', '.', '--', 'x']), /多了位置参数：x/);
 });

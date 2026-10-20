@@ -19,7 +19,7 @@
 ```bash
 git clone <本仓库> agent-flow        # 或解压 agent-flow.zip
 cd your-project
-/path/to/agent-flow/bin/agent-flow init . --tool trae,cursor --mode brownfield
+/path/to/agent-flow/bin/agent-flow init . --tool trae,cursor --mode brownfield   # 先打印安装计划，再询问 y/N
 # 自动检测技术栈（--packs auto 为默认）：package.json 有 engines.vscode → vscode-extension；next/vite → web；pom.xml/build.gradle → java-backend
 ```
 
@@ -29,28 +29,21 @@ cd your-project
 
 | 命令 | 作用 |
 |---|---|
-| `agent-flow init <目录> --tool trae\|cursor\|claude\|codeagent\|generic\|all --packs auto\|none\|a,b --mode auto\|greenfield\|brownfield` | 安装。不覆盖已有的非 agent-flow 文件；已有 `AGENTS.md` 时写 `AGENTS.flow.md`；记录 `.agent-flow/lock.json` |
-| `agent-flow upgrade [目录]` | 按 lock 重新渲染。**只覆盖你没改过的文件**；改过的写成 `<文件>.agent-flow-new` 让你合并 |
+| `agent-flow init <目录> --tool trae\|cursor\|claude\|codeagent\|generic\|all [--packs auto\|none\|a,b] [--mode auto\|greenfield\|brownfield]` | 安装。**`--tool` 必填**（不会默认装全部）。不覆盖已有的非 agent-flow 文件；已有 `AGENTS.md` 时写 `AGENTS.flow.md`；记录 `.agent-flow/lock.json` |
+| `agent-flow upgrade [目录]` | 按 lock 中记录的工具、packs、模式重新渲染（不接受 `--tool`）。**只覆盖你没改过的文件**；改过的写成 `<文件>.agent-flow-new` |
+| `agent-flow uninstall <目录> [--tool x,y]` | 按 lock 删除 agent-flow 生成且**未被修改**的文件和它新建的空目录；改过的文件列出并保留。不加 `--tool` 卸载全部 |
 | `agent-flow list-packs [--project 目录]` | 列出 pack；带 `--project` 时用 ✔ 标出检测命中的 pack |
 | `agent-flow new-pack <名称> [--packs-dir 目录]` | 从 `packs/_template` 生成新 pack |
 | `agent-flow build [--packs stable\|all\|none\|a,b]` | 为每个工具渲染 `dist/<tool>/`（便于查看或手动复制） |
 
-### Windows / PowerShell
+### 安全措施（2.2.0 起）
 
-不需要 bash，只需要 Node.js ≥ 18：
-
-```powershell
-git clone https://github.com/tegixia0/agent-flow.git C:\tools\agent-flow
-cd C:\path\to\your-project
-node C:\tools\agent-flow\bin\agent-flow.mjs init . --tool trae,cursor --mode brownfield
-# 或使用 .cmd 包装（cmd 与 PowerShell 都可以）：
-C:\tools\agent-flow\bin\agent-flow.cmd list-packs --project .
-# 想直接输入 agent-flow：在 agent-flow 目录运行一次 npm link
-```
-
-- 仓库带 `.gitattributes`（`eol=lf`），即使全局 `core.autocrlf=true` 也会以 LF 检出；读取时也会把 CRLF 统一成 LF，所以被编辑器存成 CRLF 的文件同样能解析，`upgrade` 也不会因换行不同而误判为"已修改"。
-- 生成的文件一律是 LF、路径一律用 `/`（`lock.json` 中也是）；Trae / Cursor / Claude Code 在 Windows 上都能正常读取。
-- 运行测试：`npm test`（`test/run.mjs` 会列出测试文件，兼容 Node 18–24；bash 包装的测试在 Windows 上自动跳过）。
+- **严格参数**：未知选项、多余的位置参数、错误的工具/模式/pack 名都会报错（退出码 2）并给出建议。比如漏写 `--` 的 `init . tool cac` 会提示「是不是想写 --tool cac？」，不会再悄悄安装默认工具。
+- **`--tool` 必填**：`init` 必须明确写出要装哪些工具；`upgrade` 使用 lock 中记录的工具。
+- **先看计划再确认**：`init` / `upgrade` / `uninstall` 会先打印计划（目标目录、工具、模式、packs、新建/跳过/冲突数量、`AGENTS.flow.md` 提示等），在终端里询问 `y/N`。
+  - `--dry-run`：只打印计划，不写不删。
+  - `--yes` / `-y`：跳过确认。**非交互环境（CI、脚本、管道）必须加 `--yes`**，否则直接报错退出，不会写入。
+- 装错了？`agent-flow uninstall <目录> --dry-run` 看一下，再 `--yes` 执行。2.1.0 及更早版本的 lock 没有记录新建目录，uninstall 会删除被删文件所在的空目录，但永远不删项目根、`docs/`、`docs/flow/`。
 
 `--tool all` = trae + cursor + claude。generic 需单独指定（它会把规则内联进 AGENTS.md）；**codeagent（别名 `cac`）也需单独指定**：它的布局来自用户描述、没有公开文档核对，不默认安装。
 第三方 pack：`--packs-dir ./my-packs` 或环境变量 `AGENT_FLOW_PACKS_PATH`。
