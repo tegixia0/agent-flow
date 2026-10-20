@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import { init, upgrade, newPack, build } from '../bin/agent-flow.mjs';
 import { ROOT, listPacks } from '../lib/model.mjs';
@@ -14,7 +14,7 @@ import { splitFrontmatter, parseYaml } from '../lib/yaml.mjs';
 // js-yaml 是可选的交叉校验；没有就退回内置解析器
 let jsYaml = null;
 try { jsYaml = createRequire(import.meta.url)('js-yaml'); } catch {
-  try { jsYaml = createRequire(path.join(execFileSync('npm', ['root', '-g'], { shell: process.platform === 'win32', stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(), 'x'))('js-yaml'); } catch {}
+  try { jsYaml = createRequire(path.join(execSync('npm root -g', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(), 'x'))('js-yaml'); } catch {}
 }
 console.log(`# frontmatter parser: ${jsYaml ? 'js-yaml' : 'internal'}`);
 const yamlLoad = (s) => (jsYaml ? jsYaml.load(s) : parseYaml(s));
@@ -217,7 +217,7 @@ test('bash 包装可运行（仅 POSIX）', { skip: !hasBash && '非 POSIX 或�
 });
 
 test('Windows .cmd 包装可运行（仅 Windows）', { skip: process.platform !== 'win32' && '非 Windows' }, () => {
-  const out = execFileSync(path.join(ROOT, 'bin', 'agent-flow.cmd'), ['list-packs'], { shell: true }).toString();
+  const out = execSync(`"${path.join(ROOT, 'bin', 'agent-flow.cmd')}" list-packs`).toString();
   assert.match(out, /vscode-extension/);
 });
 
