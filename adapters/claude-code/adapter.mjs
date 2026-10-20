@@ -18,23 +18,29 @@ const CLAUDE_MD = `@AGENTS.md
 - 说"走流程 / 下一步 / 通过 1,3 / 驳回 2"即可驱动 flow-orchestrator。
 `;
 
-export function render(m) {
-  const files = [
-    ...skillFiles('.claude/skills', m.skills),
+/**
+ * Claude Code 风格目录的通用渲染（codeagent adapter 复用）：
+ * <dir>/skills/<name>/…、<dir>/rules/<name>.md（只用 paths）、<dir>/agents/<name>.md（skills 预加载）。
+ */
+export function renderClaudeLayout(m, dir) {
+  return [
+    ...skillFiles(`${dir}/skills`, m.skills),
     ...m.rules.map((r) => {
       const paths = asList(globsStr(r.globs));
       const fm = paths.length ? `---\npaths:\n${paths.map((p) => `  - "${p}"`).join('\n')}\n---\n` : '';
       const desc = r.description && !r.alwaysApply ? `\n> 适用场景：${r.description}\n` : '';
-      return { path: `.claude/rules/${r.name}.md`, content: fm + desc + r.body.replace(/^\n/, desc ? '\n' : '') };
+      return { path: `${dir}/rules/${r.name}.md`, content: fm + desc + r.body.replace(/^\n/, desc ? '\n' : '') };
     }),
     ...m.agents.map((a) => {
       const tools = a.tools.filter((t) => t !== 'Skill');
       return {
-        path: `.claude/agents/${a.name}.md`,
+        path: `${dir}/agents/${a.name}.md`,
         content: `---\nname: ${a.name}\ndescription: ${sq(a.description)}\ntools: ${tools.join(', ')}\nmodel: inherit\nskills:\n  - ${a.skill}\n---\n${a.body}`,
       };
     }),
-    { path: 'CLAUDE.md', content: CLAUDE_MD, ifAbsent: true },
   ];
-  return files;
+}
+
+export function render(m) {
+  return [...renderClaudeLayout(m, '.claude'), { path: 'CLAUDE.md', content: CLAUDE_MD, ifAbsent: true }];
 }

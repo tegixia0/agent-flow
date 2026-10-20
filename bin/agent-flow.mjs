@@ -10,15 +10,19 @@ import * as trae from '../adapters/trae/adapter.mjs';
 import * as cursor from '../adapters/cursor/adapter.mjs';
 import * as claude from '../adapters/claude-code/adapter.mjs';
 import * as generic from '../adapters/generic/adapter.mjs';
+import * as codeagent from '../adapters/codeagent/adapter.mjs';
 
-export const ADAPTERS = { trae, cursor, claude, generic };
+export const ADAPTERS = { trae, cursor, claude, generic, codeagent };
+/** 工具别名 */
+export const ALIASES = { cac: 'codeagent', 'claude-code': 'claude' };
+// codeagent 不在 all 中：它的布局来自用户描述、未经官方文档核对，需显式选择（见 docs/adapters.md）
 const ALL = ['trae', 'cursor', 'claude'];
 const LOCK = '.agent-flow/lock.json';
 
 const HELP = `agent-flow ${VERSION} —— 分阶段 AI 开发流程（分析→定位→设计→草图→实现→评审）
 
 用法：
-  agent-flow init <项目目录> [--tool trae|cursor|claude|generic|all|a,b] [--packs auto|none|a,b] [--mode auto|greenfield|brownfield] [--force] [--dry-run]
+  agent-flow init <项目目录> [--tool trae|cursor|claude|codeagent(cac)|generic|all|a,b] [--packs auto|none|a,b] [--mode auto|greenfield|brownfield] [--force] [--dry-run]
   agent-flow upgrade [项目目录] [--force]     按 .agent-flow/lock.json 重新生成；只覆盖未被修改的文件
   agent-flow list-packs [--project <目录>]     列出可用 pack（及是否命中自动检测）
   agent-flow new-pack <名称> [--packs-dir <目录>]
@@ -40,7 +44,7 @@ export function parseArgs(argv) {
 }
 
 const toolsOf = (s = 'all') => {
-  const list = s === 'all' ? ALL : s.split(',').map((x) => x.trim()).filter(Boolean);
+  const list = [...new Set((s === 'all' ? ALL : s.split(',').map((x) => x.trim()).filter(Boolean)).map((x) => ALIASES[x] || x))];
   for (const t of list) if (!ADAPTERS[t]) throw new Error(`未知工具：${t}（可选 ${Object.keys(ADAPTERS).join('/')}/all）`);
   return list;
 };
@@ -72,7 +76,8 @@ export function renderAll({ tools, packs, mode }) {
     flowReadme ??= m.flowReadme;
     if (ad.agentsMdExtra) agentsMd = agentsMd.replace(/\n*$/, '\n') + ad.agentsMdExtra(m);
   }
-  add({ path: 'AGENTS.md', content: agentsMd, agentsMd: true });
+  // 只有选中了需要根目录 AGENTS.md 的工具时才写（codeagent 自带 .cac/AGENTS.md，单独安装时不写根目录文件）
+  if (tools.some((t) => !ADAPTERS[t].ownInstructions)) add({ path: 'AGENTS.md', content: agentsMd, agentsMd: true });
   add({ path: 'docs/flow/README.md', content: flowReadme });
   return [...files.values()];
 }
@@ -87,7 +92,10 @@ function applyFiles(project, files, { lock = {}, force = false, dry = false, log
     if (cur === null) { /* new */ }
     else if (cur === f.content) { hashes[target] = sha(f.content); report.skipped.push(target); continue; }
     else if (f.ifAbsent) { log(`  · 保留已有：${target}`); report.skipped.push(target); continue; }
-    else if (f.agentsMd && !known) { target = 'AGENTS.flow.md'; log('  ! 已有 AGENTS.md：写入 AGENTS.flow.md，请把「开发流程」等小节合并进去'); }
+    else if (f.agentsMd && !known) {
+      target = target.replace(/AGENTS\.md$/, 'AGENTS.flow.md');
+      log(`  ! 已有 ${f.path}：写入 ${target}，请把「开发流程」等小节合并进去`);
+    }
     else if (!force && !(known && sha(cur) === known)) {
       if (!known) { log(`  · 跳过（已存在、非 agent-flow 生成）：${target}`); report.skipped.push(target); continue; }
       target += '.agent-flow-new';

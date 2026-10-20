@@ -1,6 +1,6 @@
 {
   "name": "agent-flow",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "分阶段 AI 开发流程（分析→定位→设计→草图→实现→评审），一份源码渲染到 Trae / Cursor / Claude Code / AGENTS.md",
   "type": "module",
   "bin": { "agent-flow": "bin/agent-flow.mjs" },
@@ -10,6 +10,6 @@
     "test": "node test/run.mjs",
     "build": "node bin/agent-flow.mjs build"
   },
-  "keywords": ["ai", "agent", "trae", "cursor", "claude-code", "agents-md", "skills", "workflow"],
+  "keywords": ["ai", "agent", "trae", "cursor", "claude-code", "codeagent", "agents-md", "skills", "workflow"],
   "license": "MIT"
 }

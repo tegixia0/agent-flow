@@ -1,5 +1,16 @@
 # 更新日志
 
+## 2.1.0 — 2026-10-20
+
+### 新增
+- 新 adapter **codeagent**（`--tool codeagent`，别名 `cac`）：生成 `.cac/AGENTS.md`、`.cac/rules/*.md`、`.cac/agents/*.md`、`.cac/skills/flow-*/`。复用 claude-code adapter 的渲染（新导出 `renderClaudeLayout`）。
+  - 布局来自用户描述，frontmatter 照搬 Claude Code，**assumed, unverified**（见 docs/adapters.md）。
+  - 不触碰 `.cac/settings.json`、`AGENTS.local.md`、`output-styles/`、`hooks/`、`agent-memory*/`。
+  - 已有非 agent-flow 生成的 `.cac/AGENTS.md` → 写 `.cac/AGENTS.flow.md`。
+  - 只装 codeagent 时不写根目录 AGENTS.md；**不包含在 `--tool all` 中**。
+- CLI 支持工具别名（`cac`、`claude-code`）；adapter 可声明 `ownInstructions`。
+- 测试：codeagent 布局、frontmatter、用户文件不被触碰、`.cac/AGENTS.flow.md`、别名与 `all`、upgrade。
+
 ## 2.0.1 — 2026-10-20
 
 ### 修复（Windows）

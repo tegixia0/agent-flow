@@ -41,6 +41,30 @@ reviewer 为 `readonly: true`：Cursor 的只读子代理不能写文件，所�
 > Claude Code 只在没有 CLAUDE.md 时才读取 AGENTS.md，所以用 `@AGENTS.md` 导入最稳妥。
 > Cursor 也会读取 `.claude/skills/`；同时安装 cursor 与 claude 时，Cursor 中可能看到两份同名技能，内容只在路径提示上不同。
 
+## CodeAgent（`--tool codeagent`，别名 `cac`）
+
+> ⚠️ **没有公开文档。** 目录布局来自用户提供的说明；下表中所有 frontmatter 格式都是**照搬 Claude Code 的假定（assumed, unverified）**。拿到官方文档后请逐项核对并更新本节与 `adapters/codeagent/adapter.mjs`。
+
+用户提供的项目目录布局：`.cac/settings.json`（共享设置）、`.cac/AGENTS.md`（项目说明，共享）、`.cac/AGENTS.local.md`（本地）、`rules/`（按需规则）、`agents/`（项目子代理）、`skills/`（项目技能）、`output-styles/`、`hooks/`、`agent-memory/`、`agent-memory-local/`。
+
+| 产物 | 路径 | 格式 | 依据 |
+|---|---|---|---|
+| 项目说明 | `.cac/AGENTS.md` | 与根目录 AGENTS.md 同内容 + 「CodeAgent（agent-flow）」小节；已存在且不是 agent-flow 生成的 → 写 `.cac/AGENTS.flow.md` | 路径：用户提供；内容格式：assumed, unverified |
+| 技能 | `.cac/skills/<name>/SKILL.md` | agentskills.io（`name` / `description`） | 路径：用户提供；格式：assumed, unverified |
+| 规则 | `.cac/rules/<name>.md` | 只用 `paths` 列表；无 globs 的规则不写 frontmatter（假定"始终加载"） | 路径：用户提供；`paths` 字段与"无 frontmatter 即始终加载"：assumed, unverified |
+| 子代理 | `.cac/agents/<name>.md` | `name`、`description`、`tools`（逗号分隔，去掉 `Skill`）、`model: inherit`、`skills: [对应技能]` | 路径：用户提供；全部字段：assumed, unverified |
+
+实现：`adapters/codeagent/adapter.mjs` 复用 `claude-code` adapter 导出的 `renderClaudeLayout(model, '.cac')`，只替换目录、token 和入口说明。
+
+**绝不触碰**（adapter 内有断言，测试也会校验）：`.cac/settings.json`、`.cac/AGENTS.local.md`、`.cac/output-styles/`、`.cac/hooks/`、`.cac/agent-memory/`、`.cac/agent-memory-local/`。需要改设置或钩子请用户自己处理。
+
+**根目录 AGENTS.md 的取舍**：`.cac/AGENTS.md` 已经是完整的项目说明，所以
+
+- 只装 `codeagent` 时**不写**根目录 `AGENTS.md`，避免 CodeAgent 若同时读取两处而重复加载（是否会读根目录未知）。
+- 与其他工具同装（如 `--tool cursor,cac`）时，根目录 `AGENTS.md` 照常写给其他工具，`.cac/AGENTS.md` 也写一份完整内容；两份由 lock 分别跟踪，`upgrade` 时同步更新。重复加载的风险同上，未验证。
+
+**为什么不在 `--tool all` 中**：布局与格式都未经核对；`all` 应只包含已核对的工具。需要时显式写 `--tool all,cac` 或 `--tool trae,cursor,claude,codeagent`。
+
 ## generic（`--tool generic`）
 
 给只认 AGENTS.md 的工具（Codex、Copilot coding agent、Jules、Zed、Windsurf 等）：
@@ -51,5 +75,6 @@ reviewer 为 `readonly: true`：Cursor 的只读子代理不能写文件，所�
 ## 新增一个 adapter
 
 1. 复制 `adapters/generic/adapter.mjs` 为 `adapters/<tool>/adapter.mjs`，改 `tokens` 与 `render`。
-2. 在 `bin/agent-flow.mjs` 的 `ADAPTERS` 中注册（是否纳入 `all` 自行决定）。
+2. 在 `bin/agent-flow.mjs` 的 `ADAPTERS` 中注册（别名写进 `ALIASES`；是否纳入 `all` 自行决定，未核对的工具不要纳入）。
+   - 若该工具有自己的项目说明文件、不需要根目录 AGENTS.md，导出 `ownInstructions = true`，并在 render 中输出带 `agentsMd: true` 的说明文件（沿用"已存在则写 *.flow.md"策略）。
 3. 在 `test/cli.test.mjs` 的 `TOOLS` 中加一项期望路径；写明官方文档链接和核对日期。

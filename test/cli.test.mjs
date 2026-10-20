@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execFileSync, execSync } from 'node:child_process';
 import crypto from 'node:crypto';
-import { init, upgrade, newPack, build } from '../bin/agent-flow.mjs';
+import { init, upgrade, newPack, build, ADAPTERS } from '../bin/agent-flow.mjs';
 import { ROOT, listPacks } from '../lib/model.mjs';
 import { walk, read } from '../lib/util.mjs';
 import { splitFrontmatter, parseYaml } from '../lib/yaml.mjs';
@@ -189,6 +189,7 @@ test('build 渲染 dist/<tool>/，默认只含 stable pack', () => {
   const out = tmp();
   build({ out }, quiet);
   for (const t of Object.keys(TOOLS)) assert.ok(fs.existsSync(path.join(out, t, 'AGENTS.md')));
+  assert.ok(fs.existsSync(path.join(out, 'codeagent/.cac/AGENTS.md')));
   assert.ok(!fs.existsSync(path.join(out, 'claude/.claude/rules/java-spring.md')));
   assert.ok(fs.existsSync(path.join(out, 'cursor/.cursor/rules/web-frontend.mdc')));
 });
@@ -254,4 +255,87 @@ test('upgrade：文件被 git 转成 CRLF 不算修改', () => {
   fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/\n/g, '\r\n'));
   const { report } = upgrade(d, {}, quiet);
   assert.deepEqual(report.conflicts, []);
+});
+
+// ---------------- codeagent（.cac/，布局按 Claude Code 假定） ----------------
+const CAC_USER_FILES = {
+  '.cac/settings.json': '{"model":"x"}\n',
+  '.cac/AGENTS.local.md': '# 我的本地说明\n',
+  '.cac/output-styles/terse.md': 'terse\n',
+  '.cac/hooks/pre.sh': 'echo hi\n',
+  '.cac/agent-memory/notes.md': 'mem\n',
+  '.cac/agent-memory-local/notes.md': 'local mem\n',
+};
+
+test('codeagent：init 生成 .cac 布局、frontmatter 合法，不写根目录 AGENTS.md', () => {
+  const d = tmp({ 'package.json': '{"engines":{"vscode":"^1.90.0"}}' });
+  const { lock } = init(d, { tool: 'codeagent', mode: 'brownfield' }, quiet);
+  assert.deepEqual(lock.tools, ['codeagent']);
+  for (const s of [...SKILLS, 'vscode-release']) checkSkill(path.join(d, '.cac/skills', s), s);
+  for (const a of AGENTS) {
+    const data = fm(path.join(d, '.cac/agents', `${a}.md`));
+    assert.equal(data.name, a);
+    assert.equal(data.model, 'inherit');
+    assert.deepEqual(data.skills, [fm(path.join(ROOT, 'core/agents', `${a}.md`)).skill]);
+    assert.doesNotMatch(String(data.tools), /Skill/);
+  }
+  for (const r of ['flow-workflow', 'flow-handoff-format', 'flow-scope-guard', 'vscode-extension', 'vscode-webview']) {
+    const data = fm(path.join(d, '.cac/rules', `${r}.md`));
+    if (data) assert.deepEqual(Object.keys(data), ['paths']);
+  }
+  assert.deepEqual(fm(path.join(d, '.cac/rules/flow-handoff-format.md')), { paths: ['docs/flow/**'] });
+  const ag = read(path.join(d, '.cac/AGENTS.md'));
+  assert.match(ag, /## 开发流程/);
+  assert.match(ag, /默认模式：brownfield/);
+  assert.match(ag, /## CodeAgent（agent-flow）/);
+  assert.match(read(path.join(d, '.cac/skills/flow-orchestrator/SKILL.md')), /\.cac\/agents\//);
+  assert.match(read(path.join(d, '.cac/agents/flow-reviewer.md')), /\.cac\/skills\/flow-review\/SKILL\.md/);
+  assert.ok(!fs.existsSync(path.join(d, 'AGENTS.md')), '单独安装 codeagent 不写根目录 AGENTS.md');
+  assert.ok(!fs.existsSync(path.join(d, 'CLAUDE.md')));
+  assert.ok(!fs.existsSync(path.join(d, '.claude')));
+  for (const f of walk(d)) if (/\.md$/.test(f)) assert.doesNotMatch(read(path.join(d, f)), /\{\{[A-Z_]+\}\}|<!--@/, f);
+});
+
+test('codeagent：别名 cac；不在 --tool all 中；与其他工具同装时写根目录 AGENTS.md', () => {
+  const d1 = tmp();
+  assert.deepEqual(init(d1, { tool: 'cac', packs: 'none' }, quiet).lock.tools, ['codeagent']);
+  const d2 = tmp();
+  init(d2, { tool: 'all', packs: 'none' }, quiet);
+  assert.ok(!fs.existsSync(path.join(d2, '.cac')));
+  const d3 = tmp();
+  init(d3, { tool: 'cursor,cac', packs: 'none' }, quiet);
+  assert.ok(fs.existsSync(path.join(d3, 'AGENTS.md')) && fs.existsSync(path.join(d3, '.cac/AGENTS.md')));
+});
+
+test('codeagent：不触碰用户文件；已有 .cac/AGENTS.md → .cac/AGENTS.flow.md', () => {
+  const d = tmp({ ...CAC_USER_FILES, '.cac/AGENTS.md': '# 我的项目说明\n' });
+  const { files } = init(d, { tool: 'codeagent', packs: 'none' }, quiet);
+  for (const [f, c] of Object.entries(CAC_USER_FILES)) assert.equal(read(path.join(d, f)), c, `${f} 被修改`);
+  assert.equal(read(path.join(d, '.cac/AGENTS.md')), '# 我的项目说明\n');
+  assert.match(read(path.join(d, '.cac/AGENTS.flow.md')), /## 开发流程/);
+  const { PROTECTED } = ADAPTERS.codeagent;
+  for (const f of files) assert.ok(!PROTECTED.some((p) => f.path === p || f.path.startsWith(p)), f.path);
+  const lock = JSON.parse(read(path.join(d, '.agent-flow/lock.json')));
+  for (const k of Object.keys(lock.files)) assert.ok(!PROTECTED.some((p) => k === p || k.startsWith(p)), k);
+});
+
+test('codeagent：upgrade 覆盖未改文件、保留改过的文件和用户文件', () => {
+  const d = tmp(CAC_USER_FILES);
+  init(d, { tool: 'codeagent', packs: 'none' }, quiet);
+  const edited = path.join(d, '.cac/rules/flow-workflow.md');
+  const agentsMd = path.join(d, '.cac/AGENTS.md');
+  fs.appendFileSync(edited, '\n- 自定义\n');
+  fs.writeFileSync(agentsMd, read(agentsMd).replace('<例如', '<我的'));
+  const pristine = path.join(d, '.cac/agents/flow-analyst.md');
+  const lockPath = path.join(d, '.agent-flow/lock.json');
+  const lock = JSON.parse(read(lockPath));
+  fs.writeFileSync(pristine, 'old\n');
+  lock.files['.cac/agents/flow-analyst.md'] = await_sha('old\n');
+  fs.writeFileSync(lockPath, JSON.stringify(lock));
+  const { report } = upgrade(d, {}, quiet);
+  assert.deepEqual(report.conflicts.sort(), ['.cac/AGENTS.md', '.cac/rules/flow-workflow.md']);
+  assert.ok(fs.existsSync(edited + '.agent-flow-new') && fs.existsSync(agentsMd + '.agent-flow-new'));
+  assert.match(read(edited), /自定义/);
+  assert.match(read(pristine), /^---\nname: flow-analyst/);
+  for (const [f, c] of Object.entries(CAC_USER_FILES)) assert.equal(read(path.join(d, f)), c);
 });

@@ -29,7 +29,7 @@ cd your-project
 
 | 命令 | 作用 |
 |---|---|
-| `agent-flow init <目录> --tool trae\|cursor\|claude\|generic\|all --packs auto\|none\|a,b --mode auto\|greenfield\|brownfield` | 安装。不覆盖已有的非 agent-flow 文件；已有 `AGENTS.md` 时写 `AGENTS.flow.md`；记录 `.agent-flow/lock.json` |
+| `agent-flow init <目录> --tool trae\|cursor\|claude\|codeagent\|generic\|all --packs auto\|none\|a,b --mode auto\|greenfield\|brownfield` | 安装。不覆盖已有的非 agent-flow 文件；已有 `AGENTS.md` 时写 `AGENTS.flow.md`；记录 `.agent-flow/lock.json` |
 | `agent-flow upgrade [目录]` | 按 lock 重新渲染。**只覆盖你没改过的文件**；改过的写成 `<文件>.agent-flow-new` 让你合并 |
 | `agent-flow list-packs [--project 目录]` | 列出 pack；带 `--project` 时用 ✔ 标出检测命中的 pack |
 | `agent-flow new-pack <名称> [--packs-dir 目录]` | 从 `packs/_template` 生成新 pack |
@@ -52,17 +52,19 @@ C:\tools\agent-flow\bin\agent-flow.cmd list-packs --project .
 - 生成的文件一律是 LF、路径一律用 `/`（`lock.json` 中也是）；Trae / Cursor / Claude Code 在 Windows 上都能正常读取。
 - 运行测试：`npm test`（`test/run.mjs` 会列出测试文件，兼容 Node 18–24；bash 包装的测试在 Windows 上自动跳过）。
 
-`--tool all` = trae + cursor + claude（generic 需单独指定，因为它会把规则内联进 AGENTS.md）。
+`--tool all` = trae + cursor + claude。generic 需单独指定（它会把规则内联进 AGENTS.md）；**codeagent（别名 `cac`）也需单独指定**：它的布局来自用户描述、没有公开文档核对，不默认安装。
 第三方 pack：`--packs-dir ./my-packs` 或环境变量 `AGENT_FLOW_PACKS_PATH`。
 
 ## 各工具生成什么
 
-| | Trae | Cursor | Claude Code | generic |
-|---|---|---|---|---|
-| 技能 | `.trae/skills/flow-*/` | `.cursor/skills/flow-*/` | `.claude/skills/flow-*/` | `docs/agent-flow/skills/` |
-| 规则 | `.trae/rules/*.md` | `.cursor/rules/*.mdc` | `.claude/rules/*.md`（`paths`） | 内联到 `AGENTS.md` |
-| 子代理 | `.trae/agents/` | `.cursor/agents/` | `.claude/agents/`（`skills` 预加载） | `docs/agent-flow/agents/`（参考） |
-| 入口说明 | `AGENTS.md`（需打开设置开关） | `AGENTS.md` | `CLAUDE.md` → `@AGENTS.md` | `AGENTS.md` |
+| | Trae | Cursor | Claude Code | CodeAgent（`cac`，假定） | generic |
+|---|---|---|---|---|---|
+| 技能 | `.trae/skills/flow-*/` | `.cursor/skills/flow-*/` | `.claude/skills/flow-*/` | `.cac/skills/flow-*/` | `docs/agent-flow/skills/` |
+| 规则 | `.trae/rules/*.md` | `.cursor/rules/*.mdc` | `.claude/rules/*.md`（`paths`） | `.cac/rules/*.md`（`paths`） | 内联到 `AGENTS.md` |
+| 子代理 | `.trae/agents/` | `.cursor/agents/` | `.claude/agents/`（`skills` 预加载） | `.cac/agents/` | `docs/agent-flow/agents/`（参考） |
+| 入口说明 | `AGENTS.md`（需打开设置开关） | `AGENTS.md` | `CLAUDE.md` → `@AGENTS.md` | `.cac/AGENTS.md`（单独安装时不写根目录 AGENTS.md） | `AGENTS.md` |
+
+CodeAgent：agent-flow **不会**创建或修改 `.cac/settings.json`、`.cac/AGENTS.local.md`、`output-styles/`、`hooks/`、`agent-memory/`、`agent-memory-local/`。
 
 详见 [docs/adapters.md](docs/adapters.md)。
 
@@ -91,7 +93,7 @@ agent-flow/
 ├── lib/            yaml / model（加载、检测）/ render（解析 token、注入 hook）/ util
 ├── core/           manifest.yaml · skills/ · rules/ · agents/ · project/（AGENTS.md 模板）
 ├── packs/          vscode-extension · web · java-backend（骨架）· _template
-├── adapters/       trae · cursor · claude-code · generic
+├── adapters/       trae · cursor · claude-code · codeagent · generic
 ├── examples/       todo-lens（两轮完整示例：新建 + 存量“按标签筛选”）
 ├── docs/           architecture · how-to-add-a-pack · adapters · intro.html
 └── test/           cli.test.mjs + fixtures/kit-v1.1（旧版快照，用于兼容性测试）
