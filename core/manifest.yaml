@@ -1,0 +1,37 @@
+# agent-flow core manifest：阶段 → 技能 / 代理 / 交接文件
+version: 2.0.0
+stages:
+  - id: orchestrator
+    skill: flow-orchestrator
+    modes: [greenfield, brownfield]
+  - id: analyze
+    skill: flow-analyze
+    agent: flow-analyst
+    handoff: docs/flow/01-analysis.md
+    modes: [greenfield, brownfield]
+  - id: locate
+    skill: flow-locate
+    agent: flow-locator
+    handoff: docs/flow/01b-impact.md
+    modes: [brownfield]
+  - id: design
+    skill: flow-design
+    agent: flow-designer
+    handoff: docs/flow/02-design.md
+    modes: [greenfield, brownfield]
+  - id: sketch
+    skill: flow-sketch
+    agent: flow-sketcher
+    handoff: docs/flow/03-sketch.md
+    modes: [greenfield, brownfield]
+  - id: implement
+    skill: flow-implement
+    agent: flow-implementer
+    handoff: docs/flow/04-plan.md
+    modes: [greenfield, brownfield]
+  - id: review
+    skill: flow-review
+    agent: flow-reviewer
+    handoff: docs/flow/05-review.md
+    modes: [greenfield, brownfield]
+rules: [flow-workflow, flow-handoff-format, flow-scope-guard]
