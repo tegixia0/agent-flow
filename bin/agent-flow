@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# agent-flow 的 bash 包装：需要 Node.js ≥ 18
+set -euo pipefail
+DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+command -v node >/dev/null 2>&1 || { echo "agent-flow 需要 Node.js ≥ 18：https://nodejs.org" >&2; exit 1; }
+exec node "$DIR/agent-flow.mjs" "$@"
