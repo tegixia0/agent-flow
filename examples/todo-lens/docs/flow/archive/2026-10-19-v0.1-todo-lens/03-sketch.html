@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- stage: 03-sketch | status: approved | TODO Lens 单文件原型（无外部依赖，颜色使用 VS Code 主题变量 + Dark+ 回退值） -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>原型：TODO Lens</title>
+<style>
+  :root {
+    --vscode-font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    --vscode-foreground: #cccccc; --vscode-descriptionForeground: #9d9d9d;
+    --vscode-sideBar-background: #181818; --vscode-editor-background: #1f1f1f;
+    --vscode-list-hoverBackground: #2a2d2e; --vscode-list-activeSelectionBackground: #04395e;
+    --vscode-button-background: #0078d4; --vscode-button-foreground: #fff;
+    --vscode-badge-background: #616161; --vscode-badge-foreground: #f8f8f8;
+    --vscode-statusBar-background: #181818; --vscode-panel-border: #2b2b2b;
+    --vscode-editorWarning-foreground: #cca700; --vscode-notifications-background: #202020;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:13px var(--vscode-font-family); color:var(--vscode-foreground); background:var(--vscode-editor-background); }
+  .toolbar { padding:8px; display:flex; gap:6px; align-items:center; border-bottom:1px solid var(--vscode-panel-border); }
+  button { background:var(--vscode-button-background); color:var(--vscode-button-foreground); border:0; padding:4px 10px; cursor:pointer; }
+  .shell { display:flex; height:calc(100vh - 72px); }
+  .activity { width:48px; background:#181818; border-right:1px solid var(--vscode-panel-border); text-align:center; padding-top:10px; font-size:20px; }
+  .sidebar { width:320px; background:var(--vscode-sideBar-background); border-right:1px solid var(--vscode-panel-border); }
+  .title { padding:6px 12px; font-size:11px; text-transform:uppercase; display:flex; justify-content:space-between; }
+  .row { padding:2px 12px; display:flex; gap:6px; cursor:pointer; white-space:nowrap; }
+  .row:hover { background:var(--vscode-list-hoverBackground); }
+  .row.sel { background:var(--vscode-list-activeSelectionBackground); }
+  .todo { padding-left:30px; }
+  .desc { color:var(--vscode-descriptionForeground); margin-left:auto; }
+  .badge { background:var(--vscode-badge-background); color:var(--vscode-badge-foreground); border-radius:9px; padding:0 6px; margin-left:auto; font-size:11px; }
+  .warn { color:var(--vscode-editorWarning-foreground); }
+  .welcome { padding:12px; color:var(--vscode-descriptionForeground); }
+  .welcome button { margin-top:8px; width:100%; }
+  .editor { flex:1; padding:16px; font-family:Consolas, monospace; white-space:pre; color:var(--vscode-descriptionForeground); }
+  .hl { background:#264f78; color:#fff; }
+  .statusbar { height:22px; line-height:22px; padding:0 8px; background:var(--vscode-statusBar-background); border-top:1px solid var(--vscode-panel-border); cursor:pointer; }
+  .toast { position:fixed; right:16px; bottom:32px; background:var(--vscode-notifications-background); border:1px solid var(--vscode-panel-border); padding:10px 14px; display:none; }
+  [data-state] { display:none; } [data-state].on { display:block; }
+</style>
+</head>
+<body>
+  <div class="toolbar">状态切换：
+    <button onclick="show('normal')">正常</button>
+    <button onclick="show('empty')">空</button>
+    <button onclick="show('limit')">超限</button>
+    <span class="desc">点击条目可模拟跳转（AC-2）</span>
+  </div>
+  <div class="shell">
+    <div class="activity" title="TODO Lens">☑</div>
+    <aside class="sidebar">
+      <div class="title"><span>TODO Lens: TODO 列表</span><span title="重新扫描">⟳</span></div>
+      <div data-state="normal" class="on">
+        <div class="row">▾ 📄 src/extension.ts <span class="badge">2</span></div>
+        <div class="row todo" onclick="jump(this,12)">○ TODO: 改成读取配置 <span class="desc">L12</span></div>
+        <div class="row todo" onclick="jump(this,30)"><span class="warn">⚠</span> FIXME: 处理读取失败 <span class="desc">L30</span></div>
+        <div class="row">▾ 📄 src/utils/date.ts <span class="badge">1</span></div>
+        <div class="row todo" onclick="jump(this,4)">○ TODO: 支持时区 <span class="desc">L4</span></div>
+      </div>
+      <div data-state="empty" class="welcome">当前工作区没有找到 TODO / FIXME 注释。<button onclick="show('normal')">重新扫描</button></div>
+    </aside>
+    <main class="editor" id="editor">（点击左侧条目，模拟打开文件并定位）</main>
+  </div>
+  <div class="statusbar" id="sb" title="TODO Lens：共 3 条">☑ 3</div>
+  <div class="toast" id="toast">⚠ TODO Lens：文件数达到上限 2000，结果可能不完整。</div>
+<script>
+  function show(s){
+    const listState = s === 'limit' ? 'normal' : s;
+    document.querySelectorAll('[data-state]').forEach(e => e.classList.toggle('on', e.dataset.state === listState));
+    document.getElementById('sb').textContent = '☑ ' + (s === 'empty' ? 0 : 3);
+    document.getElementById('toast').style.display = s === 'limit' ? 'block' : 'none';
+  }
+  function jump(el, line){
+    document.querySelectorAll('.row').forEach(r => r.classList.remove('sel'));
+    el.classList.add('sel');
+    const lines = [];
+    for (let i = Math.max(1, line - 3); i <= line + 3; i++) {
+      lines.push(String(i).padStart(3) + '  ' + (i === line ? '<span class="hl">// ' + el.textContent.replace(/L\d+$/, '').trim() + '</span>' : '…'));
+    }
+    document.getElementById('editor').innerHTML = lines.join('\n');
+  }
+</script>
+</body>
+</html>

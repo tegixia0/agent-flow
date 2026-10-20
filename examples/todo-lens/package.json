@@ -1,0 +1,110 @@
+{
+  "name": "todo-lens",
+  "displayName": "TODO Lens",
+  "description": "在侧边栏按文件列出工作区里的 TODO / FIXME 注释，点击跳转，状态栏显示总数。",
+  "version": "0.1.0",
+  "publisher": "your-name",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "todoLens",
+          "title": "TODO Lens",
+          "icon": "$(checklist)"
+        }
+      ]
+    },
+    "views": {
+      "todoLens": [
+        {
+          "id": "todoLens.list",
+          "name": "TODO 列表"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "todoLens.list",
+        "contents": "当前工作区没有找到 TODO / FIXME 注释。\n[重新扫描](command:todoLens.refresh)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "todoLens.refresh",
+        "title": "TODO Lens: 重新扫描",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "todoLens.filterByTag",
+        "title": "TODO Lens: 按标签筛选",
+        "icon": "$(filter)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "todoLens.refresh",
+          "when": "view == todoLens.list",
+          "group": "navigation"
+        },
+        {
+          "command": "todoLens.filterByTag",
+          "when": "view == todoLens.list",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TODO Lens",
+      "properties": {
+        "todoLens.keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "TODO",
+            "FIXME"
+          ],
+          "description": "要匹配的注释关键字（区分大小写）。"
+        },
+        "todoLens.exclude": {
+          "type": "string",
+          "default": "**/{node_modules,dist,out,.git}/**",
+          "description": "扫描时排除的 glob。"
+        },
+        "todoLens.maxFiles": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 1,
+          "description": "单次扫描的最大文件数。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test:unit": "npm run compile && node --test out/test/",
+    "test": "npm run compile && vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.43",
+    "@types/vscode": "1.95",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.4.0",
+    "typescript": "^5.9.3"
+  }
+}
