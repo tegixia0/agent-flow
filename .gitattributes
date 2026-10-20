@@ -1,0 +1,9 @@
+# 统一使用 LF：frontmatter 解析与生成文件的哈希都按 LF 计算（Windows 上 core.autocrlf=true 也不会被转换）
+* text=auto eol=lf
+*.sh text eol=lf
+bin/agent-flow text eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.zip binary

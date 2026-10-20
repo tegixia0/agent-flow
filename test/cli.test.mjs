@@ -14,14 +14,15 @@ import { splitFrontmatter, parseYaml } from '../lib/yaml.mjs';
 // js-yaml 是可选的交叉校验；没有就退回内置解析器
 let jsYaml = null;
 try { jsYaml = createRequire(import.meta.url)('js-yaml'); } catch {
-  try { jsYaml = createRequire(path.join(execFileSync('npm', ['root', '-g']).toString().trim(), 'x'))('js-yaml'); } catch {}
+  try { jsYaml = createRequire(path.join(execFileSync('npm', ['root', '-g'], { shell: process.platform === 'win32', stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(), 'x'))('js-yaml'); } catch {}
 }
 console.log(`# frontmatter parser: ${jsYaml ? 'js-yaml' : 'internal'}`);
 const yamlLoad = (s) => (jsYaml ? jsYaml.load(s) : parseYaml(s));
 
 const quiet = () => {};
 const tmp = (files = {}) => {
-  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-flow-'));
+  // realpath.native 展开 Windows 8.3 短路径（C:\Users\ADMINI~1\…），避免路径比较不一致
+  const d = fs.realpathSync.native(fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()), 'agent-flow-')));
   for (const [f, c] of Object.entries(files)) { fs.mkdirSync(path.dirname(path.join(d, f)), { recursive: true }); fs.writeFileSync(path.join(d, f), c); }
   return d;
 };
@@ -201,7 +202,56 @@ test('所有 pack 与 core 源文件 frontmatter 合法', () => {
   for (const f of walk(path.join(ROOT, 'core/agents'))) assert.ok(fm(path.join(ROOT, 'core/agents', f)).skill);
 });
 
-test('bash 包装可运行', () => {
-  const out = execFileSync(path.join(ROOT, 'bin/agent-flow'), ['list-packs']).toString();
+test('CLI 可通过 node 运行（跨平台）', () => {
+  const out = execFileSync(process.execPath, [path.join(ROOT, 'bin', 'agent-flow.mjs'), 'list-packs']).toString();
   assert.match(out, /vscode-extension/);
+  const d = tmp();
+  execFileSync(process.execPath, [path.join(ROOT, 'bin', 'agent-flow.mjs'), 'init', d, '--tool', 'cursor', '--packs', 'none']);
+  assert.ok(fs.existsSync(path.join(d, '.cursor', 'rules', 'flow-workflow.mdc')));
+});
+
+const hasBash = process.platform !== 'win32' && (() => { try { execFileSync('bash', ['-c', 'true']); return true; } catch { return false; } })();
+test('bash 包装可运行（仅 POSIX）', { skip: !hasBash && '非 POSIX 或没有 bash' }, () => {
+  const out = execFileSync('bash', [path.join(ROOT, 'bin', 'agent-flow'), 'list-packs']).toString();
+  assert.match(out, /vscode-extension/);
+});
+
+test('Windows .cmd 包装可运行（仅 Windows）', { skip: process.platform !== 'win32' && '非 Windows' }, () => {
+  const out = execFileSync(path.join(ROOT, 'bin', 'agent-flow.cmd'), ['list-packs'], { shell: true }).toString();
+  assert.match(out, /vscode-extension/);
+});
+
+test('CRLF 源文件也能正确解析', () => {
+  const crlf = '---\r\nname: x\r\ndescription: \'a: b\'\r\ntools: [Read, Write]\r\n---\r\n\r\nbody\r\n';
+  const { data, body } = splitFrontmatter(crlf);
+  assert.deepEqual(data, { name: 'x', description: 'a: b', tools: ['Read', 'Write'] });
+  assert.equal(body, '\nbody\n');
+  const dir = tmp();
+  newPack('crlf-pack', { packsDir: [dir] }, quiet);
+  for (const f of walk(path.join(dir, 'crlf-pack'))) {
+    const abs = path.join(dir, 'crlf-pack', f);
+    fs.writeFileSync(abs, fs.readFileSync(abs, 'utf8').replace(/\n/g, '\r\n'));
+  }
+  const p = listPacks([dir]).find((x) => x.name === 'crlf-pack');
+  assert.equal(p.status, 'skeleton');
+  assert.equal(p.rules[0].name, 'crlf-pack');
+  assert.ok(Array.isArray(p.verify) && p.verify.length === 1);
+});
+
+test('生成文件一律 LF，lock 中路径用 /', () => {
+  const d = tmp();
+  const { lock } = init(d, { tool: 'all', packs: 'web' }, quiet);
+  for (const k of Object.keys(lock.files)) {
+    assert.doesNotMatch(k, /\\/, k);
+    assert.doesNotMatch(fs.readFileSync(path.join(d, k), 'utf8'), /\r/, k);
+  }
+});
+
+test('upgrade：文件被 git 转成 CRLF 不算修改', () => {
+  const d = tmp();
+  init(d, { tool: 'trae', packs: 'none' }, quiet);
+  const f = path.join(d, '.trae', 'rules', 'flow-workflow.md');
+  fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/\n/g, '\r\n'));
+  const { report } = upgrade(d, {}, quiet);
+  assert.deepEqual(report.conflicts, []);
 });

@@ -35,6 +35,23 @@ cd your-project
 | `agent-flow new-pack <名称> [--packs-dir 目录]` | 从 `packs/_template` 生成新 pack |
 | `agent-flow build [--packs stable\|all\|none\|a,b]` | 为每个工具渲染 `dist/<tool>/`（便于查看或手动复制） |
 
+### Windows / PowerShell
+
+不需要 bash，只需要 Node.js ≥ 18：
+
+```powershell
+git clone https://github.com/tegixia0/agent-flow.git C:\tools\agent-flow
+cd C:\path\to\your-project
+node C:\tools\agent-flow\bin\agent-flow.mjs init . --tool trae,cursor --mode brownfield
+# 或使用 .cmd 包装（cmd 与 PowerShell 都可以）：
+C:\tools\agent-flow\bin\agent-flow.cmd list-packs --project .
+# 想直接输入 agent-flow：在 agent-flow 目录运行一次 npm link
+```
+
+- 仓库带 `.gitattributes`（`eol=lf`），即使全局 `core.autocrlf=true` 也会以 LF 检出；读取时也会把 CRLF 统一成 LF，所以被编辑器存成 CRLF 的文件同样能解析，`upgrade` 也不会因换行不同而误判为"已修改"。
+- 生成的文件一律是 LF、路径一律用 `/`（`lock.json` 中也是）；Trae / Cursor / Claude Code 在 Windows 上都能正常读取。
+- 运行测试：`npm test`（`test/run.mjs` 会列出测试文件，兼容 Node 18–24；bash 包装的测试在 Windows 上自动跳过）。
+
 `--tool all` = trae + cursor + claude（generic 需单独指定，因为它会把规则内联进 AGENTS.md）。
 第三方 pack：`--packs-dir ./my-packs` 或环境变量 `AGENT_FLOW_PACKS_PATH`。
 

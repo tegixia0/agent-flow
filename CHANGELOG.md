@@ -1,5 +1,16 @@
 # 更新日志
 
+## 2.0.1 — 2026-10-20
+
+### 修复（Windows）
+- 新增 `.gitattributes`（`* text=auto eol=lf`），`core.autocrlf=true` 时也以 LF 检出。
+- `lib/util.read()`、`parseYaml()`、`splitFrontmatter()` 统一把 CRLF 转成 LF（并去掉 BOM），修复"缺少 frontmatter"和后续的 TypeError。
+- `upgrade` 按 LF 计算哈希：文件被转成 CRLF 不再被当作用户修改。
+- CLI 用 `pathToFileURL` 判断入口，Windows 路径下也能正确执行。
+- 新增 `bin/agent-flow.cmd`；README 增加 Windows / PowerShell 用法。
+- `npm test` 改为 `node test/run.mjs`（Node 18–24 通用；`node --test test/` 在 Node 22+ Windows 上会报 MODULE_NOT_FOUND）。
+- 测试：通过 `process.execPath` 调用 CLI；bash 包装测试只在 POSIX 上运行；临时目录用 `realpathSync.native` 展开 8.3 短路径；新增 CRLF、LF 输出、`/` 路径、CRLF 升级测试。
+
 ## 2.0.0 — 2026-10-20
 
 从 `agent-workflow-kit` v1.1 重构为 `agent-flow`。

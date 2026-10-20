@@ -2,6 +2,7 @@
 // agent-flow CLI —— 零依赖（仅 Node ≥18 内置模块）
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { ROOT, VERSION, loadCore, listPacks, detectPacks, packDirs } from '../lib/model.mjs';
 import { resolve, lockEntry } from '../lib/render.mjs';
 import { read, exists, sha, writeFile, walk } from '../lib/util.mjs';
@@ -137,7 +138,7 @@ export function newPack(name, opts = {}, log = console.log) {
   for (const rel of walk(src)) {
     const out = rel.replace(/__PACK_NAME__/g, name);
     writeFile(path.join(dest, out), read(path.join(src, rel)).replace(/\{\{PACK_NAME\}\}/g, name));
-    log(`  + ${path.join(dest, out)}`);
+    log(`  + ${path.join(dest, out)}`); // 本地路径，按系统分隔符显示
   }
   log(`完成。编辑 ${path.join(dest, 'pack.yaml')}，然后运行：agent-flow list-packs`);
   return dest;
@@ -180,4 +181,6 @@ export function main(argv = process.argv.slice(2)) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('agent-flow.mjs')) main();
+// 直接运行时执行 main()（Windows 下 argv[1] 是 C:\\… 路径，需转成 file:// URL 再比较）
+const invoked = process.argv[1] && (() => { try { return pathToFileURL(fs.realpathSync(process.argv[1])).href; } catch { return ''; } })();
+if (invoked === import.meta.url || /agent-flow(\.mjs)?$/.test(process.argv[1] || '')) main();
