@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.agent-flow-new
+*.tgz
+*.zip
+.DS_Store
+coverage/
+examples/*/out/
+examples/*/.vscode-test/
+examples/*/*.vsix
