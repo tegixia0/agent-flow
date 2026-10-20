@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- stage: 03-sketch | status: draft | 单文件原型：无外部依赖，颜色使用 VS Code 主题变量（附 Dark+ 回退值） -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>原型：&lt;功能名&gt;</title>
+<style>
+  :root {
+    --vscode-font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    --vscode-font-size: 13px;
+    --vscode-foreground: #cccccc;
+    --vscode-descriptionForeground: #9d9d9d;
+    --vscode-sideBar-background: #181818;
+    --vscode-editor-background: #1f1f1f;
+    --vscode-list-hoverBackground: #2a2d2e;
+    --vscode-list-activeSelectionBackground: #04395e;
+    --vscode-button-background: #0078d4;
+    --vscode-button-foreground: #ffffff;
+    --vscode-badge-background: #616161;
+    --vscode-badge-foreground: #f8f8f8;
+    --vscode-statusBar-background: #181818;
+    --vscode-errorForeground: #f85149;
+    --vscode-panel-border: #2b2b2b;
+  }
+  body { margin:0; font: var(--vscode-font-size) var(--vscode-font-family); color: var(--vscode-foreground); background: var(--vscode-editor-background); }
+  .toolbar { padding:8px; border-bottom:1px solid var(--vscode-panel-border); display:flex; gap:6px; }
+  button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border:0; padding:4px 10px; cursor:pointer; }
+  .shell { display:flex; height: calc(100vh - 70px); }
+  .sidebar { width: 300px; background: var(--vscode-sideBar-background); border-right:1px solid var(--vscode-panel-border); }
+  .main { flex:1; padding:16px; color: var(--vscode-descriptionForeground); }
+  .statusbar { height:22px; line-height:22px; padding:0 8px; background: var(--vscode-statusBar-background); border-top:1px solid var(--vscode-panel-border); }
+  [data-state] { display:none; } [data-state].on { display:block; }
+</style>
+</head>
+<body>
+  <div class="toolbar">状态切换：
+    <button onclick="show('empty')">空</button>
+    <button onclick="show('normal')">正常</button>
+    <button onclick="show('error')">错误</button>
+  </div>
+  <div class="shell">
+    <aside class="sidebar">
+      <div data-state="empty">（空状态）</div>
+      <div data-state="normal" class="on">（正常状态）</div>
+      <div data-state="error" style="color:var(--vscode-errorForeground)">（错误状态）</div>
+    </aside>
+    <main class="main">编辑器区域（占位）</main>
+  </div>
+  <div class="statusbar">状态栏</div>
+<script>
+  function show(s){ document.querySelectorAll('[data-state]').forEach(e=>e.classList.toggle('on', e.dataset.state===s)); }
+</script>
+</body>
+</html>
