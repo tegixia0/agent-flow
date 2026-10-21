@@ -85,15 +85,18 @@ for (const [tool, spec] of Object.entries(TOOLS)) {
   });
 }
 
-test('兼容性：trae/cursor + --packs none 与 kit v1.1 一致（仅 design/implement 正文中技术栈段落除外）', () => {
+test('兼容性：trae/cursor + --packs none 与 kit v1.1 一致（design/implement 技术栈段落、orchestrator 与 flow README 的演进除外）', () => {
   const d = tmp();
   init(d, { tool: 'trae,cursor', packs: 'none' }, quiet);
   const EXEMPT = /skills\/flow-(design|implement)\/SKILL\.md$/;
+  // v2.3 起有意演进（归档、分支/PR），不再与 v1.1 逐字比较
+  const EVOLVED = /(skills\/flow-orchestrator\/SKILL\.md|docs\/flow\/README\.md)$/;
   const old = walk(FIX);
   assert.deepEqual(walk(d).filter((f) => !f.startsWith('.agent-flow/')), old, '文件集合一致');
   for (const f of old) {
     const a = read(path.join(d, f)), b = read(path.join(FIX, f));
-    if (EXEMPT.test(f)) assert.equal(splitFrontmatter(a).raw, splitFrontmatter(b).raw, `${f} frontmatter`);
+    if (EVOLVED.test(f)) assert.ok(a.length > 0, `${f} 存在`);
+    else if (EXEMPT.test(f)) assert.equal(splitFrontmatter(a).raw, splitFrontmatter(b).raw, `${f} frontmatter`);
     else assert.equal(a, b, `${f} 应逐字节一致`);
   }
 });
