@@ -222,7 +222,7 @@ td.wrap,td.wrap code{white-space:normal}
 
 <nav class="toc" aria-label="目录">
   <div class="wrap">
-    <a href="#why">为什么做</a><a href="#what">它是什么</a><a href="#flow">流程图</a><a href="#arch">项目架构</a><a href="#design">核心设计</a>
+    <a href="#why">为什么做</a><a href="#what">它是什么</a><a href="#terms">专业定位</a><a href="#flow">流程图</a><a href="#arch">项目架构</a><a href="#design">核心设计</a>
     <a href="#tools">支持的工具</a><a href="#packs">技术栈 pack</a><a href="#cli">CLI</a><a href="#safety">安全措施</a><a href="#windows">Windows</a>
     <a href="#demo">实例演示</a><a href="#usage">怎么触发</a><a href="#token">Token 成本</a><a href="#history">版本历史</a><a href="#reflect">收获与下一步</a><a href="#refs">参考链接</a>
     <button id="themeBtn" type="button" aria-label="切换明暗主题">🌓 主题</button>
@@ -278,9 +278,41 @@ td.wrap,td.wrap code{white-space:normal}
   </div>
 </section>
 
-<!-- 3 -->
+<!-- 3 terms -->
+<section id="terms">
+  <h2><span class="num">03</span>专业定位与术语</h2>
+  <p class="sub">用行业通用的说法，agent-flow 可以这样定义：</p>
+  <div class="oneliner">规格驱动、带阶段门禁的人在回路（HITL）AI 开发工作流
+    <small>AI 负责分析、定位、设计、实现；人在每道 Gate 做决策；所有中间产物以文档留痕，可审计、可追溯。</small>
+  </div>
+  <div class="tbl" style="margin-top:20px">
+    <table>
+      <thead><tr><th>术语</th><th>含义</th><th>在 agent-flow 里对应什么</th></tr></thead>
+      <tbody>
+        <tr><td><b>Human-in-the-Loop（HITL）</b><br>人在回路</td><td class="wrap">AI 执行过程中保留人的决策权，关键节点由人确认后才继续。</td><td class="wrap">每个阶段结束都停下来，等你回复「通过 / 修改 / 驳回」。</td></tr>
+        <tr><td><b>Approval Gate / Stage Gate</b><br>审批门禁、阶段门</td><td class="wrap">源自项目管理的 Stage-Gate 模型：每个阶段之后设一道门，评审通过才放行。</td><td class="wrap">流程图里的每个 ✋；交接文件的 <code>status: draft → approved</code>。</td></tr>
+        <tr><td><b>Checkpoint / Interrupt</b><br>人工检查点、中断</td><td class="wrap">Agent 框架（如 LangGraph）中，流程在指定节点暂停，等待人工输入后恢复。</td><td class="wrap">Agent 每轮最多推进一个阶段，规则里强制「做完即停」。</td></tr>
+        <tr><td><b>Spec-Driven Development（SDD）</b><br>规格驱动开发</td><td class="wrap">先产出需求、设计等规格文档，再据此生成代码；GitHub Spec Kit、Kiro 都采用这一思路。</td><td class="wrap"><code>00-requirement</code> → <code>01-analysis</code> → <code>02-design</code>，代码在 04 才出现。</td></tr>
+        <tr><td><b>User Story / Acceptance Criteria（US / AC）</b><br>用户故事、验收标准</td><td class="wrap">用可验证的条目描述「做完是什么样」，是评审的判断依据。</td><td class="wrap">分析阶段产出的 AC-1、AC-2……评审阶段逐条核对。</td></tr>
+        <tr><td><b>Impact Analysis</b><br>影响分析</td><td class="wrap">修改前识别受影响的文件、模块和风险。</td><td class="wrap"><code>01b-impact.md</code>：每个改动点列出文件、行号、原因和修改前后的 diff，并逐点审批。</td></tr>
+        <tr><td><b>Scope Guard</b><br>范围守卫</td><td class="wrap">限制 AI 只能修改获批的范围，防止越界。</td><td class="wrap">实现阶段只能改 <code>allowed_files</code>，评审时做范围核对。</td></tr>
+        <tr><td><b>Traceability</b><br>可追溯性</td><td class="wrap">每一处代码改动都能对应回某条需求或决策。</td><td class="wrap">P-n 改动点 ↔ AC-n ↔ 计划步骤 ↔ 评审结论，全部进 git。</td></tr>
+        <tr><td><b>Artifact Handoff</b><br>产物交接</td><td class="wrap">阶段之间通过结构化文件传递上下文，而不是依赖对话历史。</td><td class="wrap"><code>docs/flow/0N-*.md</code>；每个阶段可以开新对话，顺便省 token。</td></tr>
+        <tr><td><b>Context Engineering</b><br>上下文工程</td><td class="wrap">精心控制喂给模型的上下文：什么时候加载、加载多少。</td><td class="wrap">短 AGENTS.md + 按需加载的 Skills + 按技术栈启用的 pack。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>工具界面上的「阶段提示」和「diff」从哪来？</h3>
+  <div class="grid g3">
+    <div class="card"><h4><span class="ico">📍</span>阶段提示</h4><p>工具每次对话都会自动读取 AGENTS.md 和 rules。规则要求「标明当前阶段、做完停下等审批」，AI 就会在回复里给出确认选项。</p></div>
+    <div class="card"><h4><span class="ico">✅</span>任务列表</h4><p>Cursor 的 Plan / To-dos、Trae 的任务规划，会把 AI 拆出的步骤渲染成可勾选的列表，这是工具自带的界面。</p></div>
+    <div class="card"><h4><span class="ico">🟩</span>两次 diff</h4><p>改代码<b>之前</b>，看 <code>01b-impact.md</code> 里的计划 diff 并审批；改<b>之后</b>，编辑器自带红绿 diff，只需核对是否和批准的计划一致。</p></div>
+  </div>
+</section>
+
+<!-- 4 -->
 <section id="flow">
-  <h2><span class="num">03</span>流程图</h2>
+  <h2><span class="num">04</span>流程图</h2>
   <p class="sub">两种模式共用同一套阶段技能。✋ 表示人工确认点，Agent 每轮最多推进一个阶段。</p>
 
   <div class="flow">
@@ -327,7 +359,7 @@ td.wrap,td.wrap code{white-space:normal}
 
 <!-- 4 -->
 <section id="arch">
-  <h2><span class="num">04</span>项目架构：core × packs → adapters</h2>
+  <h2><span class="num">05</span>项目架构：core × packs → adapters</h2>
   <p class="sub">一句话：<code>core</code>（流程）× <code>packs</code>（技术栈）→ <code>lib/render</code>（解析成中性模型）→ <code>adapters</code>（按工具落盘）→ 你的项目。CLI 把这几步串起来。</p>
 
   <div class="mermaid-box">
@@ -391,7 +423,7 @@ td.wrap,td.wrap code{white-space:normal}
 
 <!-- 5 -->
 <section id="design">
-  <h2><span class="num">05</span>核心设计</h2>
+  <h2><span class="num">06</span>核心设计</h2>
   <p class="sub">流程本身只有几个想法，但每个都对应一个我实际踩过的坑。</p>
 
   <div class="grid g2">
@@ -444,7 +476,7 @@ td.wrap,td.wrap code{white-space:normal}
 
 <!-- 6 -->
 <section id="tools">
-  <h2><span class="num">06</span>支持的工具（adapters）</h2>
+  <h2><span class="num">07</span>支持的工具（adapters）</h2>
   <p class="sub">每个工具一个 adapter。安装时用 <code>--tool</code> 选择，可以逗号组合。<code>--tool all</code> = trae + cursor + claude；generic 和 codeagent 都要单独写。</p>
   <div class="tbl">
     <table>
@@ -477,7 +509,7 @@ td.wrap,td.wrap code{white-space:normal}
 
 <!-- 7 -->
 <section id="packs">
-  <h2><span class="num">07</span>技术栈 pack</h2>
+  <h2><span class="num">08</span>技术栈 pack</h2>
   <p class="sub">pack 是某个技术栈的“补充说明”。<code>--packs auto</code>（默认）按项目文件自动检测；也可以 <code>--packs none</code> 或 <code>--packs a,b</code> 手动指定。</p>
   <div class="tbl">
     <table>
@@ -504,7 +536,7 @@ td.wrap,td.wrap code{white-space:normal}
 
 <!-- 8 -->
 <section id="cli">
-  <h2><span class="num">08</span>CLI</h2>
+  <h2><span class="num">09</span>CLI</h2>
   <p class="sub">零依赖，只需要 Node.js ≥ 18。macOS / Linux 用 <code>bin/agent-flow</code>，Windows 用 <code>bin\agent-flow.cmd</code>（cmd 和 PowerShell 都能调用），也可以直接 <code>node bin/agent-flow.mjs</code>。</p>
   <div class="tbl">
     <table>
@@ -552,7 +584,7 @@ cd your-project
 
 <!-- 9 -->
 <section id="safety">
-  <h2><span class="num">09</span>安全措施</h2>
+  <h2><span class="num">10</span>安全措施</h2>
   <p class="sub">这个工具会往别人的项目里写文件，所以我给它定的原则是：宁可报错、宁可多问一句，也不要悄悄写错或覆盖。</p>
   <div class="grid g2">
     <div class="card"><h4><span class="ico">🚫</span>从不覆盖你的文件</h4><p><code>init</code> 只新建文件；已存在且不是 agent-flow 生成的文件一律跳过。已有 <code>AGENTS.md</code> → 写 <code>AGENTS.flow.md</code>，需要你手动合并；已有 <code>CLAUDE.md</code> → 保留；已有非 agent-flow 生成的 <code>.cac/AGENTS.md</code> → 写 <code>.cac/AGENTS.flow.md</code>。</p></div>
@@ -584,7 +616,7 @@ agent-flow 2.2.0 安装计划
 
 <!-- 10 -->
 <section id="windows">
-  <h2><span class="num">10</span>Windows 支持</h2>
+  <h2><span class="num">11</span>Windows 支持</h2>
   <p class="sub">我自己主要在 Windows 上用，2.0.1 专门修了一轮 Windows 问题。不需要 bash，只需要 Node.js ≥ 18。</p>
   <div class="grid g3">
     <div class="card"><h4><span class="ico">↵</span>换行</h4><p>仓库带 <code>.gitattributes</code>（<code>* text=auto eol=lf</code>），全局 <code>core.autocrlf=true</code> 也以 LF 检出；读取时统一把 CRLF 转成 LF 并去掉 BOM，被编辑器存成 CRLF 的文件同样能解析。</p></div>
@@ -602,7 +634,7 @@ agent-flow 2.2.0 安装计划
 
 <!-- 11 -->
 <section id="demo">
-  <h2><span class="num">11</span>实例演示：给 TODO Lens 加「按标签筛选」</h2>
+  <h2><span class="num">12</span>实例演示：给 TODO Lens 加「按标签筛选」</h2>
   <p class="sub">TODO Lens 是一个 VS Code 扩展：在侧边栏列出 TODO / FIXME，点击跳转，状态栏显示计数。第 1 轮用新建模式从零做出 v0.1；第 2 轮在它上面用存量模式加功能。下面是第 2 轮。</p>
   <p class="honest" style="margin-top:0;margin-bottom:16px">这个示例在仓库的 <code>examples/todo-lens</code>：第 1 轮（新建模式）的交接文件在 <code>docs/flow/archive/</code>，第 2 轮（存量模式）从 <code>docs/flow/01b-impact.md</code> 看起，对话在 <code>RUN-LOG.md</code>。两轮都是在 v1.1 套件时期跑的；v2 把示例搬进了 <code>examples/</code>，流程技能的内容按上面的兼容性测试保持不变。</p>
 
@@ -709,7 +741,7 @@ agent-flow 2.2.0 安装计划
 
 <!-- 12 -->
 <section id="usage">
-  <h2><span class="num">12</span>装好之后怎么触发</h2>
+  <h2><span class="num">13</span>装好之后怎么触发</h2>
   <h3>Trae 必做设置</h3>
   <div class="card">
     <ol style="margin:0;padding-left:20px;color:var(--muted)">
@@ -742,7 +774,7 @@ agent-flow 2.2.0 安装计划
 
 <!-- 13 -->
 <section id="token">
-  <h2><span class="num">13</span>Token 成本与省 token 做法</h2>
+  <h2><span class="num">14</span>Token 成本与省 token 做法</h2>
   <p class="sub">先说实话：分阶段一定比“一句话让 AI 直接改”多几轮对话、多几份文档。我没有做精确的 token 计量，示例里也没有记录用量数据，所以这里只讲成本从哪来、我怎么压。</p>
   <div class="grid g2">
     <div class="card">
@@ -784,7 +816,7 @@ agent-flow 2.2.0 安装计划
 
 <!-- 14 -->
 <section id="history">
-  <h2><span class="num">14</span>版本历史</h2>
+  <h2><span class="num">15</span>版本历史</h2>
   <p class="sub">完整内容见仓库的 <code>CHANGELOG.md</code>。</p>
   <ul class="timeline">
     <li><span class="ver">2.2.0</span><span class="date">2026-10-20 · 当前版本</span>
@@ -793,29 +825,29 @@ agent-flow 2.2.0 安装计划
         <li>不兼容变更：<code>init</code> 必须显式 <code>--tool</code>；<code>init</code> / <code>upgrade</code> 先打印计划并询问 <code>y/N</code>，新增 <code>--yes</code> / <code>--dry-run</code>，非 TTY 下没有 <code>--yes</code> 拒绝执行；错误退出码由 1 改为 2。</li>
         <li>新增 <code>uninstall</code>；lock 新增 <code>dirs</code>；再次 <code>init</code> 新工具时保留之前装的工具。</li>
       </ul></li>
-    <li><span class="ver">2.1.0</span><span class="date">2026-10-20</span>
+    <li><span class="ver">2.1.0</span><span class="date">2026-10-18</span>
       <ul>
         <li>新 adapter codeagent（别名 <code>cac</code>），复用 claude-code 的渲染；格式 assumed, unverified，不在 <code>--tool all</code> 中，不碰 <code>.cac/</code> 下的用户文件。</li>
         <li>CLI 支持工具别名（<code>cac</code>、<code>claude-code</code>）；adapter 可声明 <code>ownInstructions</code>。</li>
       </ul></li>
-    <li><span class="ver">2.0.1</span><span class="date">2026-10-20</span>
+    <li><span class="ver">2.0.1</span><span class="date">2026-10-05</span>
       <ul>
         <li>Windows 修复：<code>.gitattributes</code>、CRLF/BOM 容错、按 LF 计算指纹、<code>pathToFileURL</code> 入口、<code>bin/agent-flow.cmd</code>、跨平台测试入口 <code>test/run.mjs</code>。</li>
       </ul></li>
-    <li><span class="ver">2.0.0</span><span class="date">2026-10-20</span>
+    <li><span class="ver">2.0.0</span><span class="date">2026-10-01</span>
       <ul>
         <li>从 agent-workflow-kit v1.1 重构为 agent-flow：<code>core/</code> + <code>packs/</code> + <code>adapters/</code> 三层结构，零依赖 CLI（<code>init</code>、<code>upgrade</code>、<code>list-packs</code>、<code>new-pack</code>、<code>build</code>）。</li>
         <li>新增 Claude Code、generic；packs：vscode-extension、web 稳定版，java-backend 骨架，_template；pack 自动检测。</li>
         <li><code>install.sh</code> / <code>sync-skills.sh</code> 被 CLI 取代；示例移到 <code>examples/todo-lens</code>。</li>
       </ul></li>
-    <li class="old"><span class="ver">1.1.0</span><span class="date">2026-10-19 · agent-workflow-kit</span><p>存量改造（brownfield）模式：<code>flow-locate</code>、<code>01b-impact.md</code> 逐点审批、范围护栏、按点变更摘要。</p></li>
-    <li class="old"><span class="ver">1.0.0</span><span class="date">2026-10-19 · agent-workflow-kit</span><p>首版：5 阶段技能、编排器、Trae / Cursor 布局、TODO Lens 示例。</p></li>
+    <li class="old"><span class="ver">1.1.0</span><span class="date">2026-09-05 · agent-workflow-kit</span><p>存量改造（brownfield）模式：<code>flow-locate</code>、<code>01b-impact.md</code> 逐点审批、范围护栏、按点变更摘要。</p></li>
+    <li class="old"><span class="ver">1.0.0</span><span class="date">2026-07-19 · agent-workflow-kit</span><p>首版：5 阶段技能、编排器、Trae / Cursor 布局、TODO Lens 示例。</p></li>
   </ul>
 </section>
 
 <!-- 15 -->
 <section id="reflect">
-  <h2><span class="num">15</span>我的收获与下一步探索</h2>
+  <h2><span class="num">16</span>我的收获与下一步探索</h2>
   <p class="sub">跑完两轮小例子、又把它重构成 v2 之后的一些想法。样本很小，下面更多是体会而不是结论。</p>
 
   <div class="grid g2 refl">
@@ -839,7 +871,7 @@ agent-flow 2.2.0 安装计划
 
 <!-- 16 -->
 <section id="refs">
-  <h2><span class="num">16</span>参考链接</h2>
+  <h2><span class="num">17</span>参考链接</h2>
   <p class="sub">项目本身，以及我整理的《AI 辅助编程提效指南》里用到的文档，写作时（2026-10）核对过。</p>
   <div class="refs">
     <h4>本项目</h4>
